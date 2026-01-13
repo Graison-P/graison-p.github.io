@@ -1,7 +1,48 @@
 <!doctype html>
 <html lang="en">
 <head>
-<link rel="icon" href="/favicon.gif" type="image/gif">
+<link rel="icon" id="favicon" href="faviconsheet.png" type="image/png">
+<script>
+const updateFavicon = () => {
+  const canvas = document.createElement('canvas');
+  const ctx = canvas.getContext('2d');
+  const favicon = document.getElementById('favicon');
+  const spritesheet = new Image();
+  
+  // Spritesheet dimensions
+  const frameSize = 32; 
+  const framesPerRow = 5; 
+  const totalFrames = 30; 
+  let currentFrame = 0;
+
+  canvas.width = frameSize;
+  canvas.height = frameSize;
+  spritesheet.src = 'faviconsheet.png';
+
+  spritesheet.onload = () => {
+    setInterval(() => {
+      const row = Math.floor(currentFrame / framesPerRow);
+      const col = currentFrame % framesPerRow;
+      ctx.clearRect(0, 0, frameSize, frameSize);
+      ctx.drawImage(
+        spritesheet,
+        col * frameSize, // x position in spritesheet
+        row * frameSize, // y position in spritesheet
+        frameSize,
+        frameSize,
+        0,
+        0,
+        frameSize,
+        frameSize
+      );
+      favicon.href = canvas.toDataURL('image/png');
+      currentFrame = (currentFrame + 1) % totalFrames;
+    }, 300); 
+  };
+};
+
+updateFavicon();
+</script>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Graison P.</title>
