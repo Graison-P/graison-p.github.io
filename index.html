@@ -8,11 +8,11 @@ const updateFavicon = () => {
   const ctx = canvas.getContext('2d');
   const favicon = document.getElementById('favicon');
   const spritesheet = new Image();
-  
+
   // Spritesheet dimensions
-  const frameSize = 32; 
-  const framesPerRow = 5; 
-  const totalFrames = 30; 
+  const frameSize = 32;
+  const framesPerRow = 5;
+  const totalFrames = 30;
   let currentFrame = 0;
 
   canvas.width = frameSize;
@@ -37,11 +37,38 @@ const updateFavicon = () => {
       );
       favicon.href = canvas.toDataURL('image/png');
       currentFrame = (currentFrame + 1) % totalFrames;
-    }, 70); 
+    }, 70);
   };
 };
 
 updateFavicon();
+
+// Custom tagline logic
+const taglines = [
+  "REALITY IS AN ILLUSION BUY GOLD INVEST IN CRYPTO BYEEEEEEEEE!!!!!!!!",
+  "Did anyone happen to kill a red webmaster on the way? No? Then we still got a problem.",
+  "[[Hyperlink Blocked]]",
+  "what is a google?",
+  "goobe how do i turn on my phone",
+  "gmail.com my grandson Nathan",
+  "Making my money dissapear since [insert current year here]",
+  "BLYAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA-"
+];
+
+const oneInAMillion = Math.random() * 1000000 < 1;
+
+if (oneInAMillion) {
+  document.addEventListener('DOMContentLoaded', () => {
+    document.querySelector('.site-tagline').innerText = "Hey?! Where's my CSS?!";
+    const stylesheet = document.querySelector('link[rel=stylesheet]');
+    if (stylesheet) stylesheet.disabled = true;
+  });
+} else {
+  const selectedTagline = taglines[Math.floor(Math.random() * taglines.length)];
+  document.addEventListener('DOMContentLoaded', () => {
+    document.querySelector('.site-tagline').innerText = selectedTagline;
+  });
+}
 </script>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
