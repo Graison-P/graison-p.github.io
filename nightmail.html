@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>totally not a portal 2 meme</title>
+
+    <style>
+
+      @font-face {
+
+        font-family: 'UniversCnBold';
+
+        src: url('https://raw.githubusercontent.com/Graison-P/graison-p.github.io/main/assets/UniversCnBold.ttf') format('truetype');
+
+        font-weight: bold;
+
+      }
+
+      body, html {
+
+        background: #ffffff;
+
+        margin: 0; padding: 0;
+
+        width: 100%; height: 100%;
+
+        overflow: hidden;
+
+        display: flex; justify-content: center; align-items: center;
+
+      }
+
+      #main-content {
+
+        display: none;
+
+        width: 100vw; height: 100vh;
+
+        flex-direction: column;
+
+        justify-content: center;
+
+        align-items: center;
+
+      }
+
+      #overlay {
+
+        position: fixed; z-index: 1000;
+
+        width: 100%; height: 100%;
+
+        background: #fff;
+
+        display: flex; justify-content: center; align-items: center;
+
+      }
+
+      #start-btn {
+
+        padding: 20px 40px;
+
+        font-family: 'UniversCnBold', sans-serif;
+
+        font-size: 5vh;
+
+        background: transparent; color: #000;
+
+        border: 2px solid #000; border-radius: 4px;
+
+        cursor: pointer;
+
+        transition: all 0.2s ease;
+
+      }
+
+      #start-btn:hover { background: #000; color: #fff; }
+
+      .stage {
+
+        width: 90%;
+
+        height: 30vh;
+
+        position: relative;
+
+        border-bottom: 0.5vh solid #333;
+
+      }
+
+      #wheatley {
+
+        width: 12vh; height: 12vh;
+
+        max-width: 80px; max-height: 80px;
+
+        position: absolute; bottom: 0;
+
+        background-image: url('https://u.cubeupload.com/GvYoutube/300pxWheatley.png');
+
+        background-size: contain; background-repeat: no-repeat;
+
+        will-change: transform, left;
+
+      }
+
+      .subtitle-overlay {
+
+        position: fixed;
+
+        bottom: 10%;
+
+        width: 100%;
+
+        display: flex;
+
+        justify-content: center;
+
+        pointer-events: none;
+
+      }
+
+      .subtitle-background {
+
+        background: rgba(0, 0, 0, 0.88);
+
+        padding: 0px 4vw;
+
+        border-radius: 6px;
+
+        transition: all 0.1s ease-out;
+
+        max-height: 0;
+
+        max-width: 85vw;
+
+        overflow: hidden;
+
+        display: flex; align-items: center;
+
+        border: 1px solid rgba(255,255,255,0.15);
+
+      }
+
+      .subtitle-background.active {
+
+        max-height: 25vh;
+
+        padding: 1.5vh 4vw;
+
+      }
+
+      #caption {
+
+        font-family: 'UniversCnBold', sans-serif;
+
+        font-size: 2.8vh;
+
+        color: #0099ff;
+
+        text-shadow: none;
+
+        white-space: normal;
+
+        text-align: center;
+
+        word-wrap: break-word;
+
+      }
+
+      audio { visibility: hidden; }
+
+      @media (max-width: 600px) {
+
+        #caption { font-size: 2.2vh; }
+
+        .stage { height: 20vh; }
+
+      }
+    </style>
+  </head>
+
+  <body>
+    <div id="overlay">
+      <button id="start-btn" onclick="startTest()">..?</button>
+    </div>
+
+    <div id="main-content">
+      <div class="stage">
+        <div id="wheatley"></div>
+      </div>
+
+      <div class="subtitle-overlay">
+        <div id="subBox" class="subtitle-background">
+          <div id="caption"></div>
+        </div>
+      </div>
+    </div>
+
+    <audio id="nightMail" loop preload="auto">
+      <source
+        src="https://github.com/Graison-P/graison-p.github.io/raw/refs/heads/main/assets/this%20is%20the%20night%20mail.wav"
+        type="audio/wav"
+      />
+    </audio>
+
+    <script>
+
+      const audio = document.getElementById('nightMail');
+
+      const wheatley = document.getElementById('wheatley');
+
+      const caption = document.getElementById('caption');
+
+      const subBox = document.getElementById('subBox');
+
+      const overlay = document.getElementById('overlay');
+
+      const content = document.getElementById('main-content');
+
+      const lines = [
+
+        { text: "This is the Night Mail crossing the Border,", start: 0.0, end: 1.7 },
+
+        { text: "Bringing the cheuqe and the postal order,", start: 1.8, end: 3.5 },
+
+        { text: "Letters for the rich, letters for the poor,", start: 3.6, end: 5.3 },
+
+        { text: "The shop at the corner, the girl next door.", start: 5.4, end: 6.9 }
+
+      ];
+
+      function startTest() {
+
+        document.title = "This is the Night Mail crossing the Border";
+
+        overlay.style.display = 'none';
+
+        content.style.display = 'flex';
+
+        audio.play();
+
+        requestAnimationFrame(update);
+
+      }
+
+      function update() {
+
+        const time = audio.currentTime;
+
+        const loopTime = time % 7;
+
+
+
+        let activeLine = lines.find(l => loopTime >= l.start && loopTime < l.end);
+
+        if (activeLine) {
+
+          if (caption.innerText !== activeLine.text) caption.innerText = activeLine.text;
+
+          subBox.classList.add('active');
+
+        } else {
+
+          subBox.classList.remove('active');
+
+        }
+
+        let hSpeed = 0.35;
+
+        let pingPong = Math.abs(( (time * hSpeed) % 2 ) - 1);
+
+        wheatley.style.left = (pingPong * 80) + "%";
+
+
+
+        let bounceCycle = (time * 7.42) % Math.PI;
+
+        let gravity = Math.pow(Math.sin(bounceCycle), 0.18);
+
+        let bHeight = gravity * 10;
+
+
+
+        let dir = ( (time * hSpeed) % 2 ) > 1 ? -1 : 1;
+
+        let rotation = Math.sin(time * 3) * 12 * dir;
+
+        wheatley.style.transform = `translateY(-${bHeight}vh) rotate(${rotation}deg)`;
+
+        requestAnimationFrame(update);
+
+      }
+    </script>
+  </body>
+</html>
