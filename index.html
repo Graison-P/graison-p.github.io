@@ -2,81 +2,6 @@
 <html lang="en">
 <head>
 <link rel="icon" id="favicon" href="faviconsheet.png" type="image/png">
-<script>
-const updateFavicon = () => {
-  const canvas = document.createElement('canvas');
-  const ctx = canvas.getContext('2d');
-  const favicon = document.getElementById('favicon');
-  const spritesheet = new Image();
-
-  // Spritesheet dimensions
-  const frameSize = 32;
-  const framesPerRow = 5;
-  const totalFrames = 30;
-  let currentFrame = 0;
-
-  canvas.width = frameSize;
-  canvas.height = frameSize;
-  spritesheet.src = 'faviconsheet.png';
-
-  spritesheet.onload = () => {
-    setInterval(() => {
-      const row = Math.floor(currentFrame / framesPerRow);
-      const col = currentFrame % framesPerRow;
-      ctx.clearRect(0, 0, frameSize, frameSize);
-      ctx.drawImage(
-        spritesheet,
-        col * frameSize, // x position in spritesheet
-        row * frameSize, // y position in spritesheet
-        frameSize,
-        frameSize,
-        0,
-        0,
-        frameSize,
-        frameSize
-      );
-      favicon.href = canvas.toDataURL('image/png');
-      currentFrame = (currentFrame + 1) % totalFrames;
-    }, 70);
-  };
-};
-
-updateFavicon();
-
-// Custom tagline logic
-const taglines = [
-  "REALITY IS AN ILLUSION BUY GOLD BYEEEEEEEEE!!!!!!!!",
-  "Did anyone happen to kill a red webmaster on the way? No? Then we still got a problem.",
-  "[[Hyperlink Blocked]]",
-  "what is a google?",
-  "goobe how do i turn on my phone",
-  "gmail.com my grandson Nathan",
-  "Making my money dissapear since- aw crap i forgot",
-  "BLYAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA-",
-  "oh cholera, czy to freddy fazbear?",
-  "Ye- the kitty flew, away-",
-  "This load failed to site- DAMN IT!",
-  "'babulbublida' - The Roblox prison break obby guy",
-  "And now, a story in emojis:</br> 😎🛻😱🚑👻",
-  "Kyle - Cute - Nice - <b><i>DEAD</i></b>",
-  "<a href="/nightmail">Whats this...?</a>
-];
-
-const oneInAMillion = Math.random() * 1000000 < 1;
-
-if (oneInAMillion) {
-  document.addEventListener('DOMContentLoaded', () => {
-    document.querySelector('.site-tagline').innerHTML = "Hey?! Where's my CSS?!";
-    const stylesheet = document.querySelector('link[rel=stylesheet]');
-    if (stylesheet) stylesheet.disabled = true;
-  });
-} else {
-  const selectedTagline = taglines[Math.floor(Math.random() * taglines.length)];
-  document.addEventListener('DOMContentLoaded', () => {
-    document.querySelector('.site-tagline').innerHTML = selectedTagline;
-  });
-}
-</script>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Graison P.</title>
@@ -95,7 +20,6 @@ if (oneInAMillion) {
 </nav>
 </div>
 </header>
-
 <main class="container">
 <section id="projects" class="section">
 <h2>Projects</h2>
@@ -108,7 +32,6 @@ if (oneInAMillion) {
 </li>
 </ul>
 </section>
-
 <section id="news" class="section">
 <h2>News</h2>
 <article class="news-item">
@@ -124,17 +47,87 @@ if (oneInAMillion) {
 <p>Launched a refreshed minimalist homepage and linked QuickNote repository, and added WRD site project.</p>
 </article>
 </section>
-
 <section id="about" class="section">
 <h2>About</h2>
 <p>Hi, I'm Graison. I build small tools and maintain my projects on GitHub.</p>
 </section>
 </main>
-
 <footer class="site-footer">
 <div class="container">
 <p>&copy; 2026 Graison P. • <a href="https://github.com/Graison-P">GitHub</a></p>
 </div>
 </footer>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  // Favicon update logic
+  const updateFavicon = () => {
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    const favicon = document.getElementById('favicon');
+    const spritesheet = new Image();
+
+    // Spritesheet dimensions
+    const frameSize = 32;
+    const framesPerRow = 5;
+    const totalFrames = 30;
+    let currentFrame = 0;
+
+    canvas.width = frameSize;
+    canvas.height = frameSize;
+    spritesheet.src = 'faviconsheet.png';
+
+    spritesheet.onload = () => {
+      setInterval(() => {
+        const row = Math.floor(currentFrame / framesPerRow);
+        const col = currentFrame % framesPerRow;
+        ctx.clearRect(0, 0, frameSize, frameSize);
+        ctx.drawImage(
+          spritesheet,
+          col * frameSize, // x position in spritesheet
+          row * frameSize, // y position in spritesheet
+          frameSize,
+          frameSize,
+          0,
+          0,
+          frameSize,
+          frameSize
+        );
+        favicon.href = canvas.toDataURL('image/png');
+        currentFrame = (currentFrame + 1) % totalFrames;
+      }, 70);
+    };
+  };
+
+  updateFavicon();
+
+  // Tagline logic
+  const taglines = [
+    "REALITY IS AN ILLUSION BUY GOLD BYEEEEEEEEE!!!!!!!!",
+    "Did anyone happen to kill a red webmaster on the way? No? Then we still got a problem.",
+    "[[Hyperlink Blocked]]",
+    "what is a google?",
+    "goobe how do i turn on my phone",
+    "gmail.com my grandson Nathan",
+    "Making my money dissapear since- aw crap i forgot",
+    "BLYAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA-",
+    "oh cholera, czy to freddy fazbear?",
+    "Ye- the kitty flew, away-",
+    "This load failed to site- DAMN IT!",
+    "'babulbublida' - The Roblox prison break obby guy",
+    "And now, a story in emojis:</br> 😎🛻😱🚑👻",
+    "Kyle - Cute - Nice - <b><i>DEAD</i></b>",
+    "<a href=\"/nightmail\">Whats this...?\</a>"
+  ];
+
+  const oneInAMillion = Math.random() * 1000000 < 1;
+
+  const tagline = document.querySelector('.site-tagline');
+  if (tagline) {
+    tagline.innerHTML = oneInAMillion
+      ? "Hey?! Where's my CSS?!"
+      : taglines[Math.floor(Math.random() * taglines.length)];
+  }
+});
+</script>
 </body>
 </html>
