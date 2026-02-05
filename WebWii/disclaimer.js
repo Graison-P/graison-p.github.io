@@ -27,10 +27,10 @@ function showDisclaimerModal() {
 function hideDisclaimerModal() {
     const modal = document.getElementById('wii-disclaimer-modal');
     if (modal) {
-        modal.style.opacity = '0';
+        modal.style.animation = 'fadeOut 1s ease-out forwards';
         setTimeout(() => {
             modal.style.display = 'none';
-        }, 500);
+        }, 1000);
     }
 }
 

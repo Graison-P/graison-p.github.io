@@ -228,6 +228,15 @@ body {
     }
 }
 
+@keyframes fadeOut {
+    from {
+        opacity: 1;
+    }
+    to {
+        opacity: 0;
+    }
+}
+
 .wii-warning-content {
     max-width: 800px;
     padding: 40px;
