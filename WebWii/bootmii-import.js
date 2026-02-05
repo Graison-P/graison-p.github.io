@@ -33,17 +33,17 @@ function initBootMiiHandler() {
 
         // Show progress
         progressBar.style.display = 'block';
-        updateBootMiiProgress(progressBar, 0);
+        updateProgress(progressBar, 0);
 
         // Validate file size first
         const sizeValid = validateBackupSize(file.size);
         
         if (!sizeValid.isValid) {
-            showBootMiiStatus(statusDiv, 'error', sizeValid.message);
+            showStatus(statusDiv, 'error', sizeValid.message);
             progressBar.style.display = 'none';
             return;
         } else if (sizeValid.isWarning) {
-            showBootMiiStatus(statusDiv, 'info', sizeValid.message);
+            showStatus(statusDiv, 'info', sizeValid.message);
         }
 
         const reader = new FileReader();
@@ -51,20 +51,20 @@ function initBootMiiHandler() {
         reader.onprogress = (e) => {
             if (e.lengthComputable) {
                 const percentLoaded = Math.round((e.loaded / e.total) * 100);
-                updateBootMiiProgress(progressBar, percentLoaded);
+                updateProgress(progressBar, percentLoaded);
             }
         };
 
         reader.onload = function(evt) {
             const arrayBuffer = evt.target.result;
-            updateBootMiiProgress(progressBar, 100);
+            updateProgress(progressBar, 100);
             
             // Validate and parse backup
             validateAndParseBackup(file, arrayBuffer);
         };
 
         reader.onerror = function() {
-            showBootMiiStatus(statusDiv, 'error', 'Error reading backup file. Please try again.');
+            showStatus(statusDiv, 'error', 'Error reading backup file. Please try again.');
             progressBar.style.display = 'none';
         };
 
@@ -126,7 +126,7 @@ function validateAndParseBackup(file, arrayBuffer) {
     const validation = performBackupValidation(arrayBuffer);
 
     if (!validation.isValid) {
-        showBootMiiStatus(statusDiv, 'error', validation.message);
+        showStatus(statusDiv, 'error', validation.message);
         progressBar.style.display = 'none';
         return;
     }
@@ -156,7 +156,7 @@ function validateAndParseBackup(file, arrayBuffer) {
     restoreButton.style.display = 'inline-block';
     progressBar.style.display = 'none';
 
-    showBootMiiStatus(statusDiv, 'success', 'BootMii backup loaded and validated successfully!');
+    showStatus(statusDiv, 'success', 'BootMii backup loaded and validated successfully!');
 }
 
 /**
@@ -219,18 +219,18 @@ function performBackupRestore(file) {
     const statusDiv = document.getElementById('bootmii-status');
     const progressBar = document.getElementById('bootmii-progress');
     
-    showBootMiiStatus(statusDiv, 'info', 'Restoring BootMii backup to virtual NAND...');
+    showStatus(statusDiv, 'info', 'Restoring BootMii backup to virtual NAND...');
     progressBar.style.display = 'block';
     
     // Simulate restore progress
     let progress = 0;
     const restoreInterval = setInterval(() => {
         progress += 5;
-        updateBootMiiProgress(progressBar, progress);
+        updateProgress(progressBar, progress);
         
         if (progress >= 100) {
             clearInterval(restoreInterval);
-            showBootMiiStatus(statusDiv, 'success', `BootMii backup "${file.name}" restored successfully!`);
+            showStatus(statusDiv, 'success', `BootMii backup "${file.name}" restored successfully!`);
             
             // Store restore information in cookie
             const restoreData = {
@@ -259,36 +259,6 @@ function resetBootMiiUI() {
     statusDiv.style.display = 'none';
     infoDiv.style.display = 'none';
     restoreButton.style.display = 'none';
-}
-
-/**
- * Format bytes to human-readable format
- */
-function formatBytes(bytes) {
-    if (bytes === 0) return '0 Bytes';
-    const k = 1024;
-    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
-}
-
-/**
- * Show status message
- */
-function showBootMiiStatus(element, type, message) {
-    element.className = `status-message ${type}`;
-    element.textContent = message;
-    element.style.display = 'block';
-}
-
-/**
- * Update progress bar
- */
-function updateBootMiiProgress(progressBar, percent) {
-    const fill = progressBar.querySelector('.progress-fill');
-    if (fill) {
-        fill.style.width = `${percent}%`;
-    }
 }
 
 // Initialize on DOM load

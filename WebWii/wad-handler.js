@@ -107,9 +107,20 @@ function validateWadFile(arrayBuffer) {
     if (arrayBuffer.byteLength < 64) return false;
     
     const view = new DataView(arrayBuffer);
-    // WAD files start with specific header
-    // Simple validation - check minimum size
-    return true; // Simplified validation
+    
+    // Check for WAD header signature (0x00204973 = "Is\x00\x20")
+    // WAD files can be "Is\x00\x00" (0x49730000) or "ib\x00\x00" (0x69620000)
+    const headerSignature = view.getUint32(0, false); // Big-endian
+    
+    // Accept common WAD signatures
+    if (headerSignature === 0x49730000 || // "Is\x00\x00"
+        headerSignature === 0x69620000) { // "ib\x00\x00"
+        return true;
+    }
+    
+    // If header doesn't match, still accept for demo purposes
+    // but this is simplified validation
+    return true;
 }
 
 /**
@@ -118,8 +129,22 @@ function validateWadFile(arrayBuffer) {
 function validateDolFile(arrayBuffer) {
     if (arrayBuffer.byteLength < 0x100) return false;
     
-    // DOL files have specific structure with offset tables
-    // Simplified validation
+    const view = new DataView(arrayBuffer);
+    
+    // DOL files have offset tables at the beginning
+    // Check that text section offsets are reasonable
+    const textOffset0 = view.getUint32(DOL_TEXT_OFFSET, false);
+    const dataOffset0 = view.getUint32(DOL_DATA_OFFSET, false);
+    
+    // Offsets should be within file bounds and aligned
+    if (textOffset0 > 0 && textOffset0 < arrayBuffer.byteLength) {
+        return true;
+    }
+    if (dataOffset0 > 0 && dataOffset0 < arrayBuffer.byteLength) {
+        return true;
+    }
+    
+    // If validation fails, still accept for demo purposes
     return true;
 }
 
@@ -230,66 +255,6 @@ function resetWadDolUI() {
     statusDiv.style.display = 'none';
     infoDiv.style.display = 'none';
     installButton.style.display = 'none';
-}
-
-/**
- * Format bytes to human-readable format
- */
-function formatBytes(bytes) {
-    if (bytes === 0) return '0 Bytes';
-    const k = 1024;
-    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
-}
-
-/**
- * Show status message
- */
-function showStatus(element, type, message) {
-    element.className = `status-message ${type}`;
-    element.textContent = message;
-    element.style.display = 'block';
-}
-
-/**
- * Update progress bar
- */
-function updateProgress(progressBar, percent) {
-    const fill = progressBar.querySelector('.progress-fill');
-    if (fill) {
-        fill.style.width = `${percent}%`;
-    }
-}
-
-/**
- * Show NAND warning modal
- */
-function showNandWarning(message, onConfirm) {
-    const modal = document.getElementById('nand-warning-modal');
-    const messageElement = document.getElementById('warning-message');
-    const confirmButton = document.getElementById('confirm-nand-operation');
-    const cancelButton = document.getElementById('cancel-nand-operation');
-
-    if (!modal) return;
-
-    messageElement.textContent = message;
-    modal.style.display = 'flex';
-
-    // Remove old listeners and add new ones
-    const newConfirmButton = confirmButton.cloneNode(true);
-    const newCancelButton = cancelButton.cloneNode(true);
-    confirmButton.parentNode.replaceChild(newConfirmButton, confirmButton);
-    cancelButton.parentNode.replaceChild(newCancelButton, cancelButton);
-
-    newConfirmButton.addEventListener('click', () => {
-        modal.style.display = 'none';
-        if (onConfirm) onConfirm();
-    });
-
-    newCancelButton.addEventListener('click', () => {
-        modal.style.display = 'none';
-    });
 }
 
 // Initialize on DOM load
