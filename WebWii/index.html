@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebWii - Web-Based Wii Emulator</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Disclaimer Modal -->
+    <div id="wii-disclaimer-modal" class="modal-overlay" style="display: none;">
+        <div class="disclaimer-content">
+            <h2>⚠️ Warning</h2>
+            <p>WebWii is an experimental web-based Wii emulator. By continuing, you acknowledge:</p>
+            <ul>
+                <li>This software is provided as-is without warranty</li>
+                <li>NAND modifications may cause data loss</li>
+                <li>Use only legally obtained software</li>
+                <li>This is a fan project not affiliated with Nintendo</li>
+            </ul>
+            <button id="accept-disclaimer" class="wii-button">I Understand</button>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="container">
+        <header class="wii-header">
+            <h1>WebWii</h1>
+            <p class="subtitle">Web-Based Wii Emulator</p>
+        </header>
+
+        <!-- WAD/DOL File Section -->
+        <section class="feature-section">
+            <h2>📦 WAD/DOL File Import</h2>
+            <p class="section-description">Import homebrew applications and install to virtual NAND</p>
+            
+            <div class="file-upload-area">
+                <input type="file" id="wad-dol-input" accept=".wad,.dol" style="display: none;">
+                <button onclick="document.getElementById('wad-dol-input').click()" class="wii-button">
+                    Select WAD/DOL File
+                </button>
+                <div id="wad-dol-status" class="status-message"></div>
+                <div id="wad-dol-progress" class="progress-bar" style="display: none;">
+                    <div class="progress-fill"></div>
+                </div>
+            </div>
+
+            <div id="wad-dol-info" class="file-info" style="display: none;">
+                <h3>File Information</h3>
+                <div id="wad-dol-details"></div>
+                <button id="install-wad-dol" class="wii-button install-button" style="display: none;">
+                    Install to NAND
+                </button>
+            </div>
+        </section>
+
+        <!-- BootMii Backup Section -->
+        <section class="feature-section">
+            <h2>💾 BootMii NAND Backup Import</h2>
+            <p class="section-description">Import and restore BootMii NAND backups (nand.bin)</p>
+            
+            <div class="file-upload-area">
+                <input type="file" id="bootmii-input" accept=".bin" style="display: none;">
+                <button onclick="document.getElementById('bootmii-input').click()" class="wii-button">
+                    Select BootMii Backup
+                </button>
+                <div id="bootmii-status" class="status-message"></div>
+                <div id="bootmii-progress" class="progress-bar" style="display: none;">
+                    <div class="progress-fill"></div>
+                </div>
+            </div>
+
+            <div id="bootmii-info" class="file-info" style="display: none;">
+                <h3>Backup Information</h3>
+                <div id="bootmii-details"></div>
+                <button id="restore-bootmii" class="wii-button install-button" style="display: none;">
+                    Restore Backup
+                </button>
+            </div>
+        </section>
+
+        <!-- Warning Modal for NAND Operations -->
+        <div id="nand-warning-modal" class="modal-overlay" style="display: none;">
+            <div class="warning-content">
+                <h2>⚠️ NAND Operation Warning</h2>
+                <p id="warning-message"></p>
+                <div class="warning-buttons">
+                    <button id="confirm-nand-operation" class="wii-button confirm-button">Proceed</button>
+                    <button id="cancel-nand-operation" class="wii-button cancel-button">Cancel</button>
+                </div>
+            </div>
+        </div>
+
+        <footer class="wii-footer">
+            <p>WebWii is a fan project not affiliated with Nintendo. Use responsibly.</p>
+        </footer>
+    </div>
+
+    <!-- Scripts -->
+    <script src="disclaimer.js"></script>
+    <script src="wad-handler.js"></script>
+    <script src="bootmii-import.js"></script>
+</body>
+</html>
