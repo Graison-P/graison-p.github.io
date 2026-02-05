@@ -41,7 +41,7 @@
         <!-- Emulator Section -->
         <section class="feature-section emulator-section">
             <h2>🎮 Emulator</h2>
-            <p class="section-description">RetroArch-powered Wii emulation</p>
+            <p class="section-description">Wii emulation (Dolphin WASM or RetroArch fallback)</p>
             
             <div id="emulator-container" style="display: none;">
                 <canvas id="canvas" tabindex="1"></canvas>
@@ -133,11 +133,16 @@
     <!-- Scripts -->
     <script src="utils.js"></script>
     <script src="disclaimer.js"></script>
+    <script src="dolphin-loader.js"></script>
     <script src="emulator.js"></script>
     <script src="wad-handler.js"></script>
     <script src="bootmii-import.js"></script>
     
-    <!-- RetroArch Integration -->
+    <!-- Emulator Integration -->
+    <!-- Dolphin WASM (when available, place dolphin.js in this directory) -->
+    <!-- <script async src="dolphin.js"></script> -->
+    
+    <!-- RetroArch Integration (fallback) -->
     <!-- Note: Loading from CDN for latest version. For production, consider hosting locally with SRI validation -->
     <script async src="https://web.libretro.com/assets/frontend/bundle/libretro.js"></script>
 </body>

@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dolphin WASM Integration Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f0f0f0;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+        .status.info {
+            background-color: #e3f2fd;
+            color: #1976d2;
+        }
+        .status.success {
+            background-color: #e8f5e9;
+            color: #388e3c;
+        }
+        .status.error {
+            background-color: #ffebee;
+            color: #c62828;
+        }
+        .status.warning {
+            background-color: #fff3e0;
+            color: #f57c00;
+        }
+        button {
+            background-color: #1976d2;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+            font-size: 14px;
+        }
+        button:hover {
+            background-color: #1565c0;
+        }
+        button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+        canvas {
+            border: 2px solid #333;
+            display: block;
+            margin: 20px auto;
+            background-color: #000;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .test-section h3 {
+            margin-top: 0;
+        }
+        #log {
+            background-color: #263238;
+            color: #aed581;
+            padding: 15px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            max-height: 300px;
+            overflow-y: auto;
+            margin-top: 20px;
+        }
+        .log-entry {
+            margin: 2px 0;
+        }
+        .log-error {
+            color: #ef5350;
+        }
+        .log-warning {
+            color: #ffa726;
+        }
+        .log-info {
+            color: #42a5f5;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🐬 Dolphin WASM Integration Test</h1>
+        
+        <div class="status info" id="main-status">
+            Initializing test page...
+        </div>
+
+        <!-- Test Section 1: Dolphin Loader Check -->
+        <div class="test-section">
+            <h3>1. Dolphin Loader Availability</h3>
+            <p>Checking if DolphinLoader class is available...</p>
+            <div id="loader-status" class="status info">Checking...</div>
+            <button id="check-loader-btn" onclick="testLoaderAvailability()">Re-check Loader</button>
+        </div>
+
+        <!-- Test Section 2: Initialize Dolphin -->
+        <div class="test-section">
+            <h3>2. Initialize Dolphin WASM</h3>
+            <p>Attempt to initialize the Dolphin WASM module.</p>
+            <div id="init-status" class="status info">Not started</div>
+            <button id="init-btn" onclick="testInitialization()" disabled>Initialize Dolphin</button>
+        </div>
+
+        <!-- Test Section 3: Canvas -->
+        <div class="test-section">
+            <h3>3. Canvas Rendering</h3>
+            <canvas id="canvas" width="640" height="480"></canvas>
+        </div>
+
+        <!-- Test Section 4: File System -->
+        <div class="test-section">
+            <h3>4. Virtual File System</h3>
+            <p>Test virtual file system operations.</p>
+            <div id="fs-status" class="status info">Not tested</div>
+            <button id="test-fs-btn" onclick="testFileSystem()" disabled>Test File System</button>
+        </div>
+
+        <!-- Test Section 5: Load ROM -->
+        <div class="test-section">
+            <h3>5. Load Test ROM</h3>
+            <p>Load a test ROM file (you can select a small homebrew ROM).</p>
+            <input type="file" id="rom-file" accept=".dol,.wad,.iso,.wbfs" style="display: none;">
+            <button id="select-rom-btn" onclick="document.getElementById('rom-file').click()" disabled>
+                Select ROM File
+            </button>
+            <div id="rom-status" class="status info">No ROM loaded</div>
+        </div>
+
+        <!-- Test Section 6: Emulator Controls -->
+        <div class="test-section">
+            <h3>6. Emulator Controls</h3>
+            <button id="pause-btn" onclick="testPause()" disabled>Pause</button>
+            <button id="resume-btn" onclick="testResume()" disabled>Resume</button>
+            <button id="stop-btn" onclick="testStop()" disabled>Stop</button>
+            <button id="save-state-btn" onclick="testSaveState()" disabled>Save State (Slot 0)</button>
+            <button id="load-state-btn" onclick="testLoadState()" disabled>Load State (Slot 0)</button>
+            <div id="control-status" class="status info">Controls ready</div>
+        </div>
+
+        <!-- Console Log -->
+        <div class="test-section">
+            <h3>Console Log</h3>
+            <div id="log"></div>
+            <button onclick="clearLog()">Clear Log</button>
+        </div>
+    </div>
+
+    <!-- Load Dependencies -->
+    <script src="dolphin-loader.js"></script>
+    <!-- Uncomment when dolphin.js is available -->
+    <!-- <script src="dolphin.js"></script> -->
+
+    <script>
+        let dolphinLoader = null;
+        let isInitialized = false;
+
+        // Logging function
+        function log(message, type = 'info') {
+            const logDiv = document.getElementById('log');
+            const entry = document.createElement('div');
+            entry.className = `log-entry log-${type}`;
+            const timestamp = new Date().toLocaleTimeString();
+            entry.textContent = `[${timestamp}] ${message}`;
+            logDiv.appendChild(entry);
+            logDiv.scrollTop = logDiv.scrollHeight;
+            console.log(message);
+        }
+
+        function clearLog() {
+            document.getElementById('log').innerHTML = '';
+        }
+
+        function updateStatus(elementId, message, type) {
+            const element = document.getElementById(elementId);
+            element.textContent = message;
+            element.className = `status ${type}`;
+        }
+
+        // Test 1: Check if DolphinLoader is available
+        function testLoaderAvailability() {
+            log('Testing DolphinLoader availability...', 'info');
+            
+            if (typeof DolphinLoader !== 'undefined') {
+                updateStatus('loader-status', '✓ DolphinLoader class is available', 'success');
+                log('DolphinLoader class found', 'info');
+                document.getElementById('init-btn').disabled = false;
+                return true;
+            } else {
+                updateStatus('loader-status', '✗ DolphinLoader not found', 'error');
+                log('DolphinLoader class not found. Make sure dolphin-loader.js is loaded.', 'error');
+                return false;
+            }
+        }
+
+        // Test 2: Initialize Dolphin
+        async function testInitialization() {
+            log('Attempting to initialize Dolphin WASM...', 'info');
+            updateStatus('init-status', 'Initializing...', 'info');
+            
+            try {
+                dolphinLoader = new DolphinLoader();
+                
+                const config = {
+                    canvas: document.getElementById('canvas'),
+                    onStatus: (text) => {
+                        log(`Dolphin status: ${text}`, 'info');
+                    }
+                };
+
+                await dolphinLoader.init(config);
+                
+                isInitialized = true;
+                updateStatus('init-status', '✓ Dolphin WASM initialized successfully', 'success');
+                log('Dolphin WASM initialized successfully!', 'info');
+                updateStatus('main-status', '✓ Dolphin WASM is ready!', 'success');
+                
+                // Enable other test buttons
+                document.getElementById('test-fs-btn').disabled = false;
+                document.getElementById('select-rom-btn').disabled = false;
+                document.getElementById('pause-btn').disabled = false;
+                document.getElementById('resume-btn').disabled = false;
+                document.getElementById('stop-btn').disabled = false;
+                document.getElementById('save-state-btn').disabled = false;
+                document.getElementById('load-state-btn').disabled = false;
+                
+            } catch (error) {
+                updateStatus('init-status', `✗ Failed to initialize: ${error.message}`, 'error');
+                log(`Initialization error: ${error.message}`, 'error');
+                updateStatus('main-status', 
+                    '⚠ Dolphin WASM not available. Build dolphin.js first (see DOLPHIN_BUILD.md)', 
+                    'warning');
+            }
+        }
+
+        // Test 4: File System
+        function testFileSystem() {
+            log('Testing virtual file system...', 'info');
+            
+            try {
+                const module = dolphinLoader.getModule();
+                
+                if (!module || !module.FS) {
+                    throw new Error('File system not available');
+                }
+
+                // Try to create a test file
+                const testData = new Uint8Array([0x48, 0x65, 0x6C, 0x6C, 0x6F]); // "Hello"
+                module.FS.writeFile('/test.txt', testData);
+                log('Created test file: /test.txt', 'info');
+
+                // Try to read it back
+                const readData = module.FS.readFile('/test.txt');
+                log(`Read test file: ${readData.length} bytes`, 'info');
+
+                // Clean up
+                module.FS.unlink('/test.txt');
+                log('Removed test file', 'info');
+
+                updateStatus('fs-status', '✓ File system working correctly', 'success');
+            } catch (error) {
+                updateStatus('fs-status', `✗ File system error: ${error.message}`, 'error');
+                log(`File system error: ${error.message}`, 'error');
+            }
+        }
+
+        // Test 5: Load ROM
+        document.getElementById('rom-file').addEventListener('change', async (event) => {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            log(`Loading ROM: ${file.name} (${file.size} bytes)`, 'info');
+            updateStatus('rom-status', `Loading ${file.name}...`, 'info');
+
+            try {
+                const arrayBuffer = await file.arrayBuffer();
+                const romData = new Uint8Array(arrayBuffer);
+
+                await dolphinLoader.bootROM(file.name, romData);
+                
+                updateStatus('rom-status', `✓ ${file.name} loaded successfully`, 'success');
+                log(`ROM loaded and booted: ${file.name}`, 'info');
+            } catch (error) {
+                updateStatus('rom-status', `✗ Failed to load ROM: ${error.message}`, 'error');
+                log(`ROM loading error: ${error.message}`, 'error');
+            }
+        });
+
+        // Test 6: Emulator Controls
+        function testPause() {
+            log('Pausing emulation...', 'info');
+            dolphinLoader.pause();
+            updateStatus('control-status', 'Emulation paused', 'info');
+        }
+
+        function testResume() {
+            log('Resuming emulation...', 'info');
+            dolphinLoader.resume();
+            updateStatus('control-status', 'Emulation resumed', 'success');
+        }
+
+        function testStop() {
+            log('Stopping emulation...', 'info');
+            dolphinLoader.stop();
+            updateStatus('control-status', 'Emulation stopped', 'warning');
+        }
+
+        function testSaveState() {
+            log('Saving state to slot 0...', 'info');
+            dolphinLoader.saveState(0);
+            updateStatus('control-status', 'State saved to slot 0', 'success');
+        }
+
+        function testLoadState() {
+            log('Loading state from slot 0...', 'info');
+            dolphinLoader.loadState(0);
+            updateStatus('control-status', 'State loaded from slot 0', 'success');
+        }
+
+        // Initialize on load
+        window.addEventListener('DOMContentLoaded', () => {
+            log('Test page loaded', 'info');
+            updateStatus('main-status', 'Test page ready. Run tests in order.', 'info');
+            
+            // Auto-run first test
+            testLoaderAvailability();
+        });
+
+        // Intercept console for logging
+        const originalLog = console.log;
+        const originalError = console.error;
+        const originalWarn = console.warn;
+
+        console.log = function(...args) {
+            originalLog.apply(console, args);
+            if (args[0] && typeof args[0] === 'string' && args[0].includes('Dolphin')) {
+                log(args.join(' '), 'info');
+            }
+        };
+
+        console.error = function(...args) {
+            originalError.apply(console, args);
+            if (args[0] && typeof args[0] === 'string' && args[0].includes('Dolphin')) {
+                log(args.join(' '), 'error');
+            }
+        };
+
+        console.warn = function(...args) {
+            originalWarn.apply(console, args);
+            if (args[0] && typeof args[0] === 'string' && args[0].includes('Dolphin')) {
+                log(args.join(' '), 'warning');
+            }
+        };
+    </script>
+</body>
+</html>
