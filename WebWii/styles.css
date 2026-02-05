@@ -76,6 +76,58 @@ body {
     font-size: 1.1em;
 }
 
+/* Emulator Section */
+.emulator-section {
+    background: var(--wii-panel);
+    padding: 25px;
+    margin-bottom: 25px;
+    border-radius: 12px;
+    box-shadow: 0 3px 5px rgba(0, 0, 0, 0.15);
+    border: 2px solid var(--wii-blue);
+}
+
+#emulator-container {
+    text-align: center;
+}
+
+#canvas {
+    width: 100%;
+    max-width: 854px;
+    height: auto;
+    aspect-ratio: 16 / 9;
+    background: #000;
+    border-radius: 8px;
+    margin-bottom: 15px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.emulator-controls {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    margin-bottom: 15px;
+    flex-wrap: wrap;
+}
+
+.emulator-placeholder {
+    text-align: center;
+    padding: 60px 20px;
+    background: #f9f9f9;
+    border-radius: 8px;
+    border: 2px dashed var(--wii-border);
+}
+
+.emulator-placeholder p {
+    font-size: 1.3em;
+    color: #666;
+    margin-bottom: 15px;
+}
+
+.emulator-hint {
+    font-size: 1em !important;
+    color: #999 !important;
+}
+
 /* File Upload Area */
 .file-upload-area {
     padding: 20px;

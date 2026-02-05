@@ -38,6 +38,31 @@
             <p class="subtitle">Web-Based Wii Emulator</p>
         </header>
 
+        <!-- Emulator Section -->
+        <section class="feature-section emulator-section">
+            <h2>🎮 Emulator</h2>
+            <p class="section-description">RetroArch-powered Wii emulation</p>
+            
+            <div id="emulator-container" style="display: none;">
+                <canvas id="canvas" tabindex="1"></canvas>
+                <div class="emulator-controls">
+                    <button id="fullscreen-btn" class="wii-button">Fullscreen</button>
+                    <button id="pause-btn" class="wii-button">Pause</button>
+                    <button id="reset-btn" class="wii-button">Reset</button>
+                </div>
+                <div id="emulator-status" class="status-message"></div>
+            </div>
+
+            <div id="emulator-placeholder" class="emulator-placeholder">
+                <p>🎮 Load a game file to start emulation</p>
+                <p class="emulator-hint">Upload WAD/DOL files above or load ROM files here</p>
+                <input type="file" id="rom-input" accept=".wad,.dol,.iso,.wbfs" style="display: none;">
+                <button onclick="document.getElementById('rom-input').click()" class="wii-button">
+                    Select ROM File
+                </button>
+            </div>
+        </section>
+
         <!-- WAD/DOL File Section -->
         <section class="feature-section">
             <h2>📦 WAD/DOL File Import</h2>
@@ -108,7 +133,11 @@
     <!-- Scripts -->
     <script src="utils.js"></script>
     <script src="disclaimer.js"></script>
+    <script src="emulator.js"></script>
     <script src="wad-handler.js"></script>
     <script src="bootmii-import.js"></script>
+    
+    <!-- RetroArch Integration -->
+    <script async src="https://web.libretro.com/assets/frontend/bundle/libretro.js"></script>
 </body>
 </html>
