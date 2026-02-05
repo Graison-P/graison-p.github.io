@@ -1,8 +1,10 @@
 // Emulator Integration
 // Handles RetroArch web integration for Wii emulation
+// RetroArch Module object is provided by the external libretro.js library
 
 let emulatorReady = false;
 let currentROM = null;
+let statusCheckInterval = null;
 
 /**
  * Initialize emulator when page loads
@@ -42,22 +44,33 @@ function initEmulator() {
  */
 function checkRetroArchStatus() {
     // RetroArch web takes time to load
-    const checkInterval = setInterval(() => {
+    statusCheckInterval = setInterval(() => {
         if (typeof Module !== 'undefined' && Module.canvas) {
             emulatorReady = true;
-            clearInterval(checkInterval);
+            clearInterval(statusCheckInterval);
+            statusCheckInterval = null;
             console.log('RetroArch ready');
         }
     }, 500);
 
     // Stop checking after 30 seconds
     setTimeout(() => {
-        clearInterval(checkInterval);
+        if (statusCheckInterval) {
+            clearInterval(statusCheckInterval);
+            statusCheckInterval = null;
+        }
         if (!emulatorReady) {
             console.warn('RetroArch not loaded - emulation features may be limited');
         }
     }, 30000);
 }
+
+// Cleanup on page unload
+window.addEventListener('unload', () => {
+    if (statusCheckInterval) {
+        clearInterval(statusCheckInterval);
+    }
+});
 
 /**
  * Handle ROM file loading
@@ -93,7 +106,7 @@ function handleROMLoad(event) {
                 `${file.name} ready. RetroArch is still loading - please wait...`);
             
             // Try again when RetroArch is ready
-            const waitForRetroArch = setInterval(() => {
+            let waitForRetroArch = setInterval(() => {
                 if (emulatorReady && typeof Module !== 'undefined') {
                     clearInterval(waitForRetroArch);
                     loadROMIntoRetroArch(file.name, romData);
@@ -102,7 +115,12 @@ function handleROMLoad(event) {
                 }
             }, 1000);
 
-            setTimeout(() => clearInterval(waitForRetroArch), 20000);
+            // Clear interval after 20 seconds
+            setTimeout(() => {
+                if (waitForRetroArch) {
+                    clearInterval(waitForRetroArch);
+                }
+            }, 20000);
         }
     };
 
@@ -115,6 +133,7 @@ function handleROMLoad(event) {
 
 /**
  * Load ROM into RetroArch
+ * Note: Module is the global Emscripten/RetroArch object
  */
 function loadROMIntoRetroArch(filename, data) {
     try {
@@ -127,12 +146,8 @@ function loadROMIntoRetroArch(filename, data) {
         const romPath = '/tmp/' + filename;
         Module.FS.writeFile(romPath, data);
 
-        // Try to launch the ROM
-        // Note: This is a simplified approach
-        // Actual implementation depends on RetroArch web API
-        if (typeof BrowserFS !== 'undefined') {
-            console.log('ROM loaded to virtual filesystem:', romPath);
-        }
+        // ROM loaded to virtual filesystem
+        console.log('ROM loaded to virtual filesystem:', romPath);
     } catch (error) {
         console.error('Error loading ROM:', error);
     }
