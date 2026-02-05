@@ -8,19 +8,28 @@
 </head>
 <body>
     <!-- Disclaimer Modal -->
-    <div id="wii-disclaimer-modal" class="modal-overlay" style="display: none;">
-        <div class="disclaimer-content">
-            <h2>⚠️ Warning</h2>
-            <p>WebWii is an experimental web-based Wii emulator. By continuing, you acknowledge:</p>
-            <ul>
-                <li>This software is provided as-is without warranty</li>
-                <li>NAND modifications may cause data loss</li>
-                <li>Use only legally obtained software</li>
-                <li>This is a fan project not affiliated with Nintendo</li>
-            </ul>
-            <button id="accept-disclaimer" class="wii-button">I Understand</button>
+    <div id="wii-disclaimer-modal" class="wii-warning-screen" style="display: none;">
+        <div class="wii-warning-content">
+            <h1>Warning - Health and Safety</h1>
+            <p>Before using this software, read the Operations Manual for important information about health and safety.</p>
+            <div class="warning-text">
+                <p>This is an experimental web-based emulator.</p>
+                <p>By continuing, you acknowledge:</p>
+                <ul>
+                    <li>This software is provided as-is without warranty</li>
+                    <li>NAND modifications may cause data loss</li>
+                    <li>Use only legally obtained software</li>
+                    <li>This is a fan project not affiliated with Nintendo</li>
+                </ul>
+            </div>
+            <p class="continue-text">Left Click/Tap to continue</p>
         </div>
     </div>
+
+    <!-- Audio for click sound -->
+    <audio id="wii-click-sound" preload="auto">
+        <source src="../assets/wiiclick.wav" type="audio/wav">
+    </audio>
 
     <!-- Main Content -->
     <div class="container">

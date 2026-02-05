@@ -1,5 +1,5 @@
 // Disclaimer Modal Logic
-// Displays a Wii-style disclaimer on first visit and stores acceptance in cookies
+// Displays a Wii-style warning screen on first visit and stores acceptance in cookies
 
 /**
  * Check if disclaimer has been accepted
@@ -10,22 +10,27 @@ function hasAcceptedDisclaimer() {
 }
 
 /**
- * Show the disclaimer modal
+ * Show the disclaimer modal with fade-in
  */
 function showDisclaimerModal() {
     const modal = document.getElementById('wii-disclaimer-modal');
     if (modal) {
         modal.style.display = 'flex';
+        // Trigger reflow to ensure animation plays
+        void modal.offsetWidth;
     }
 }
 
 /**
- * Hide the disclaimer modal
+ * Hide the disclaimer modal with fade-out
  */
 function hideDisclaimerModal() {
     const modal = document.getElementById('wii-disclaimer-modal');
     if (modal) {
-        modal.style.display = 'none';
+        modal.style.opacity = '0';
+        setTimeout(() => {
+            modal.style.display = 'none';
+        }, 500);
     }
 }
 
@@ -39,9 +44,24 @@ function setDisclaimerCookie() {
 }
 
 /**
+ * Play Wii click sound
+ */
+function playWiiClickSound() {
+    const sound = document.getElementById('wii-click-sound');
+    if (sound) {
+        sound.currentTime = 0;
+        sound.play().catch(err => {
+            // Ignore errors if sound can't play (browser restrictions)
+            console.log('Sound play prevented:', err);
+        });
+    }
+}
+
+/**
  * Handle disclaimer acceptance
  */
 function acceptDisclaimer() {
+    playWiiClickSound();
     setDisclaimerCookie();
     hideDisclaimerModal();
 }
@@ -54,10 +74,10 @@ function initDisclaimer() {
         showDisclaimerModal();
     }
 
-    // Set up event listener for accept button
-    const acceptButton = document.getElementById('accept-disclaimer');
-    if (acceptButton) {
-        acceptButton.addEventListener('click', acceptDisclaimer);
+    // Set up event listener for clicking anywhere on the modal
+    const modal = document.getElementById('wii-disclaimer-modal');
+    if (modal) {
+        modal.addEventListener('click', acceptDisclaimer);
     }
 }
 
