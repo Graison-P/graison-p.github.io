@@ -1,0 +1,38 @@
+# Dolphin WASM build outputs (large binary files)
+# These should be built locally and deployed separately
+webwii/dolphin.js
+webwii/dolphin.wasm
+webwii/dolphin.data
+webwii/dolphin.js.map
+webwii/dolphin.wasm.map
+
+# Build artifacts
+*.o
+*.a
+*.so
+*.dylib
+*.dll
+build/
+build-*/
+dist/
+
+# Temporary files
+*.tmp
+*.log
+.DS_Store
+Thumbs.db
+
+# Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Node modules (if added in future)
+node_modules/
+package-lock.json
+
+# Local development
+.env
+.env.local

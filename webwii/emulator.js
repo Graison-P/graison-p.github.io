@@ -1,10 +1,13 @@
 // Emulator Integration
-// Handles RetroArch web integration for Wii emulation
+// Handles both RetroArch and Dolphin WASM integration for Wii emulation
 // RetroArch Module object is provided by the external libretro.js library
+// Dolphin WASM is loaded via dolphin-loader.js
 
 let emulatorReady = false;
 let currentROM = null;
 let statusCheckInterval = null;
+let emulatorType = 'retroarch'; // 'retroarch' or 'dolphin'
+let dolphinLoader = null;
 
 /**
  * Initialize emulator when page loads
@@ -35,8 +38,53 @@ function initEmulator() {
         resetBtn.addEventListener('click', resetEmulator);
     }
 
-    // Check if RetroArch is loaded
-    checkRetroArchStatus();
+    // Determine which emulator to use
+    // If Dolphin loader is available, prefer it; otherwise use RetroArch
+    if (typeof DolphinLoader !== 'undefined') {
+        emulatorType = 'dolphin';
+        initDolphin();
+    } else {
+        emulatorType = 'retroarch';
+        checkRetroArchStatus();
+    }
+}
+
+/**
+ * Initialize Dolphin WASM emulator
+ */
+function initDolphin() {
+    console.log('Initializing Dolphin WASM...');
+    
+    dolphinLoader = new DolphinLoader();
+    
+    const canvas = document.getElementById('canvas');
+    const statusDiv = document.getElementById('emulator-status');
+    
+    dolphinLoader.init({
+        canvas: canvas,
+        onStatus: (text) => {
+            if (statusDiv) {
+                showStatus(statusDiv, 'info', text);
+            }
+        }
+    })
+    .then(() => {
+        emulatorReady = true;
+        console.log('Dolphin WASM ready');
+        if (statusDiv) {
+            showStatus(statusDiv, 'success', 'Dolphin emulator ready! Load a ROM to start.');
+        }
+    })
+    .catch(error => {
+        console.error('Failed to initialize Dolphin:', error);
+        if (statusDiv) {
+            showStatus(statusDiv, 'error', 
+                'Dolphin WASM not available. Using RetroArch fallback...');
+        }
+        // Fallback to RetroArch
+        emulatorType = 'retroarch';
+        checkRetroArchStatus();
+    });
 }
 
 /**
@@ -96,20 +144,28 @@ function handleROMLoad(event) {
         if (placeholder) placeholder.style.display = 'none';
         if (container) container.style.display = 'block';
 
-        // Try to load ROM into emulator
-        if (emulatorReady && typeof Module !== 'undefined') {
-            loadROMIntoRetroArch(file.name, romData);
+        // Try to load ROM into appropriate emulator
+        if (emulatorReady) {
+            if (emulatorType === 'dolphin') {
+                loadROMIntoDolphin(file.name, romData);
+            } else {
+                loadROMIntoRetroArch(file.name, romData);
+            }
             showStatus(statusDiv, 'success', `${file.name} loaded! Use keyboard/gamepad to play.`);
         } else {
             // Fallback: Show that ROM is ready but emulator isn't fully loaded
             showStatus(statusDiv, 'info', 
-                `${file.name} ready. RetroArch is still loading - please wait...`);
+                `${file.name} ready. ${emulatorType === 'dolphin' ? 'Dolphin' : 'RetroArch'} is still loading - please wait...`);
             
-            // Try again when RetroArch is ready
-            let waitForRetroArch = setInterval(() => {
-                if (emulatorReady && typeof Module !== 'undefined') {
-                    clearInterval(waitForRetroArch);
-                    loadROMIntoRetroArch(file.name, romData);
+            // Try again when emulator is ready
+            let waitForEmulator = setInterval(() => {
+                if (emulatorReady) {
+                    clearInterval(waitForEmulator);
+                    if (emulatorType === 'dolphin') {
+                        loadROMIntoDolphin(file.name, romData);
+                    } else {
+                        loadROMIntoRetroArch(file.name, romData);
+                    }
                     showStatus(statusDiv, 'success', 
                         `${file.name} loaded! Use keyboard/gamepad to play.`);
                 }
@@ -117,8 +173,8 @@ function handleROMLoad(event) {
 
             // Clear interval after 20 seconds
             setTimeout(() => {
-                if (waitForRetroArch) {
-                    clearInterval(waitForRetroArch);
+                if (waitForEmulator) {
+                    clearInterval(waitForEmulator);
                 }
             }, 20000);
         }
@@ -129,6 +185,35 @@ function handleROMLoad(event) {
     };
 
     reader.readAsArrayBuffer(file);
+}
+
+/**
+ * Load ROM into Dolphin WASM
+ * @param {string} filename - ROM filename
+ * @param {Uint8Array} data - ROM data
+ */
+function loadROMIntoDolphin(filename, data) {
+    try {
+        if (!dolphinLoader || !dolphinLoader.ready()) {
+            console.error('Dolphin not ready');
+            return;
+        }
+
+        // Boot the ROM using Dolphin loader
+        dolphinLoader.bootROM(filename, data)
+            .then(success => {
+                if (success) {
+                    console.log('ROM successfully booted in Dolphin:', filename);
+                } else {
+                    console.error('Failed to boot ROM in Dolphin:', filename);
+                }
+            })
+            .catch(error => {
+                console.error('Error booting ROM in Dolphin:', error);
+            });
+    } catch (error) {
+        console.error('Error loading ROM into Dolphin:', error);
+    }
 }
 
 /**
@@ -176,18 +261,28 @@ function togglePause() {
     const pauseBtn = document.getElementById('pause-btn');
     if (!pauseBtn) return;
 
-    // This would interact with RetroArch's pause functionality
-    // Simplified implementation:
-    if (typeof Module !== 'undefined' && Module.pauseMainLoop) {
+    if (emulatorType === 'dolphin' && dolphinLoader) {
+        // Use Dolphin pause/resume
         if (pauseBtn.textContent === 'Pause') {
-            Module.pauseMainLoop();
+            dolphinLoader.pause();
             pauseBtn.textContent = 'Resume';
         } else {
-            Module.resumeMainLoop();
+            dolphinLoader.resume();
             pauseBtn.textContent = 'Pause';
         }
     } else {
-        console.log('Pause/Resume not available');
+        // Use RetroArch pause/resume
+        if (typeof Module !== 'undefined' && Module.pauseMainLoop) {
+            if (pauseBtn.textContent === 'Pause') {
+                Module.pauseMainLoop();
+                pauseBtn.textContent = 'Resume';
+            } else {
+                Module.resumeMainLoop();
+                pauseBtn.textContent = 'Pause';
+            }
+        } else {
+            console.log('Pause/Resume not available');
+        }
     }
 }
 
@@ -195,7 +290,22 @@ function togglePause() {
  * Reset emulator
  */
 function resetEmulator() {
-    if (typeof Module !== 'undefined' && Module._reset) {
+    if (emulatorType === 'dolphin' && dolphinLoader) {
+        // Stop and restart with Dolphin
+        dolphinLoader.stop();
+        if (currentROM) {
+            const statusDiv = document.getElementById('emulator-status');
+            showStatus(statusDiv, 'info', 'Resetting...');
+            
+            // Reload the ROM
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const romData = new Uint8Array(e.target.result);
+                loadROMIntoDolphin(currentROM.name, romData);
+            };
+            reader.readAsArrayBuffer(currentROM);
+        }
+    } else if (typeof Module !== 'undefined' && Module._reset) {
         Module._reset();
     } else {
         // Reload current ROM
@@ -232,12 +342,16 @@ function loadWADIntoEmulator(wadFile, wadData) {
     if (placeholder) placeholder.style.display = 'none';
     if (container) container.style.display = 'block';
 
-    // Load into emulator if ready
-    if (emulatorReady && typeof Module !== 'undefined') {
-        loadROMIntoRetroArch(wadFile.name, wadData);
+    // Load into appropriate emulator
+    if (emulatorReady) {
+        if (emulatorType === 'dolphin') {
+            loadROMIntoDolphin(wadFile.name, wadData);
+        } else {
+            loadROMIntoRetroArch(wadFile.name, wadData);
+        }
         showStatus(statusDiv, 'success', `${wadFile.name} loaded into emulator!`);
     } else {
-        showStatus(statusDiv, 'info', 'RetroArch is loading... Please wait.');
+        showStatus(statusDiv, 'info', `${emulatorType === 'dolphin' ? 'Dolphin' : 'RetroArch'} is loading... Please wait.`);
     }
 }
 
