@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>OBDevAuth | Redirecting...</title>
+  </head>
+  <body style="background: #121212; color: white; text-align: center; font-family: sans-serif; padding-top: 50px;">
+    <h2>Authenticating...</h2>
+    <p>If you aren't redirected back to the app, <a id="manual-link" style="color: #3498db;">click here.</a></p>
+
+    <script>
+      //get github auth code from link
+      const urlParams = new URLSearchParams(window.location.search);
+      const githubCode = urlParams.get('code');
+
+      if (githubCode) {
+        //builds the apps custom scheme link for gh signin
+        
+        const appUrl = "obdev://graison-p.is-a.dev/callback?code=" + githubCode;
+        
+        ///we set the link to the manaual-link <p> tag id just incase of no redir
+        
+        document.getElementById('manual-link').href = appUrl;
+        
+        //jump into app
+        
+        window.location.replace(appUrl);
+      } else {
+          document.body.innerHTML = "<h2>Error!</h2><p>No auth code from GitHub was found, or the process has failed.</p>
+      }
+    </script>
+  </body>
+</html>
+    </script>
+  </body>
+</html>
