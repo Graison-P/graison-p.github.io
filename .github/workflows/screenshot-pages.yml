@@ -178,4 +178,4 @@ jobs:
               labels: ['screenshots', 'automated']
             });
             
-            console.log(`Issue created: ${issue.data.html_url}`);
+            console.log(`Issue was created: ${issue.data.html_url}`);
