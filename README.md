@@ -20,14 +20,14 @@ This repository includes an automated system that captures screenshots of all we
    - Starts a local HTTP server to serve the static website
    - Discovers all HTML pages in the repository
    - Takes full-page screenshots of each page using Chromium
-### Issue Creation
-
-Creates a GitHub issue with:
-- Commit information (SHA, message, author, date)
-- List of all pages that were screenshotted
-- Link to download screenshots from workflow artifacts
-- Automated labels: `screenshots`, `automated`
-- Unique title with commit SHA and date
+   - Uploads screenshots as workflow artifacts (retained for 90 days)
+3. **Issue Creation**:
+   - Creates a GitHub issue with:
+     - Commit information (SHA, message, author, date)
+     - List of all pages that were screenshotted
+     - Link to download screenshots from workflow artifacts
+     - Automated labels: `screenshots`, `automated`
+     - Unique title with commit SHA and date
 
 ### Workflow Configuration
 
