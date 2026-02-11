@@ -1,0 +1,181 @@
+name: Screenshot Website Pages
+
+on:
+  push:
+    branches:
+      - main
+      - master
+    paths:
+      - '**.html'
+      - '**.css'
+      - '**.js'
+      - 'assets/**'
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  screenshot-and-report:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      
+      - name: Install dependencies
+        run: |
+          npm init -y
+          npm install playwright
+          npx playwright install chromium
+      
+      - name: Start HTTP server
+        run: |
+          npx http-server . -p 8080 &
+          echo $! > server.pid
+          sleep 3
+      
+      - name: Create screenshot script
+        run: |
+          cat > screenshot.js << 'EOF'
+          const { chromium } = require('playwright');
+          const fs = require('fs');
+          const path = require('path');
+          
+          async function takeScreenshots() {
+            const browser = await chromium.launch();
+            const context = await browser.newContext({
+              viewport: { width: 1920, height: 1080 }
+            });
+            
+            // Find all HTML files
+            const htmlFiles = [];
+            function findHtmlFiles(dir) {
+              const files = fs.readdirSync(dir);
+              files.forEach(file => {
+                const fullPath = path.join(dir, file);
+                const stat = fs.statSync(fullPath);
+                if (stat.isDirectory() && !file.startsWith('.')) {
+                  findHtmlFiles(fullPath);
+                } else if (file.endsWith('.html')) {
+                  htmlFiles.push(fullPath);
+                }
+              });
+            }
+            
+            findHtmlFiles('.');
+            
+            // Create screenshots directory
+            if (!fs.existsSync('screenshots')) {
+              fs.mkdirSync('screenshots');
+            }
+            
+            const screenshotList = [];
+            
+            for (const htmlFile of htmlFiles) {
+              const relativePath = htmlFile.replace('./', '');
+              const url = `http://localhost:8080/${relativePath}`;
+              const screenshotName = relativePath.replace(/\//g, '_').replace('.html', '.png');
+              const screenshotPath = path.join('screenshots', screenshotName);
+              
+              try {
+                const page = await context.newPage();
+                await page.goto(url, { waitUntil: 'networkidle' });
+                await page.screenshot({ path: screenshotPath, fullPage: true });
+                await page.close();
+                
+                screenshotList.push({
+                  page: relativePath,
+                  screenshot: screenshotName
+                });
+                
+                console.log(`Screenshot taken: ${screenshotName}`);
+              } catch (error) {
+                console.error(`Error taking screenshot of ${relativePath}:`, error.message);
+              }
+            }
+            
+            await browser.close();
+            
+            // Save screenshot list
+            fs.writeFileSync('screenshots/list.json', JSON.stringify(screenshotList, null, 2));
+            
+            return screenshotList;
+          }
+          
+          takeScreenshots().then(() => {
+            console.log('All screenshots taken');
+          }).catch(error => {
+            console.error('Error:', error);
+            process.exit(1);
+          });
+          EOF
+      
+      - name: Take screenshots
+        run: node screenshot.js
+      
+      - name: Stop HTTP server
+        if: always()
+        run: |
+          if [ -f server.pid ]; then
+            kill $(cat server.pid) || true
+          fi
+      
+      - name: Upload screenshots as artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: page-screenshots
+          path: screenshots/
+      
+      - name: Create issue with screenshots
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const path = require('path');
+            
+            // Read screenshot list
+            const screenshotList = JSON.parse(fs.readFileSync('screenshots/list.json', 'utf8'));
+            
+            // Get commit info
+            const { data: commit } = await github.rest.repos.getCommit({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              ref: context.sha
+            });
+            
+            // Create issue body
+            let issueBody = `## 📸 Website Screenshots - Commit ${context.sha.substring(0, 7)}\n\n`;
+            issueBody += `**Commit Message:** ${commit.commit.message}\n`;
+            issueBody += `**Author:** ${commit.commit.author.name}\n`;
+            issueBody += `**Date:** ${commit.commit.author.date}\n\n`;
+            issueBody += `### Pages Captured\n\n`;
+            
+            issueBody += `This workflow has captured screenshots of ${screenshotList.length} page(s):\n\n`;
+            
+            for (const item of screenshotList) {
+              issueBody += `- 📄 **${item.page}**\n`;
+            }
+            
+            issueBody += `\n### 📦 Download Screenshots\n\n`;
+            issueBody += `All screenshots are available as workflow artifacts:\n`;
+            issueBody += `[View Workflow Run and Download Artifacts](${context.payload.repository.html_url}/actions/runs/${context.runId})\n\n`;
+            issueBody += `Screenshots are stored as artifacts and will be available for 90 days.\n\n`;
+            issueBody += `---\n`;
+            issueBody += `*Generated automatically by GitHub Actions*`;
+            
+            // Create the issue with unique title including commit SHA
+            const issue = await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `📸 Website Screenshots - ${context.sha.substring(0, 7)} - ${new Date().toISOString().split('T')[0]}`,
+              body: issueBody,
+              labels: ['screenshots', 'automated']
+            });
+            
+            console.log(`Issue created: ${issue.data.html_url}`);
