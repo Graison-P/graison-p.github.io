@@ -32,7 +32,13 @@ Thumbs.db
 # Node modules (if added in future)
 node_modules/
 package-lock.json
+package.json
 
 # Local development
 .env
 .env.local
+
+# Screenshot workflow artifacts
+screenshots/
+screenshot.js
+server.pid
