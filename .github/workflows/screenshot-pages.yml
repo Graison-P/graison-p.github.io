@@ -156,26 +156,24 @@ jobs:
             issueBody += `**Date:** ${commit.commit.author.date}\n\n`;
             issueBody += `### Pages Captured\n\n`;
             
+            issueBody += `This workflow has captured screenshots of ${screenshotList.length} page(s):\n\n`;
+            
             for (const item of screenshotList) {
-              issueBody += `#### 📄 ${item.page}\n\n`;
-              
-              // Read screenshot and convert to base64
-              const screenshotPath = path.join('screenshots', item.screenshot);
-              const imageData = fs.readFileSync(screenshotPath);
-              const base64Image = imageData.toString('base64');
-              
-              issueBody += `![${item.page}](data:image/png;base64,${base64Image})\n\n`;
+              issueBody += `- 📄 **${item.page}**\n`;
             }
             
-            issueBody += `\n---\n`;
-            issueBody += `*Generated automatically by GitHub Actions*\n`;
-            issueBody += `[View Workflow Run](${context.payload.repository.html_url}/actions/runs/${context.runId})`;
+            issueBody += `\n### 📦 Download Screenshots\n\n`;
+            issueBody += `All screenshots are available as workflow artifacts:\n`;
+            issueBody += `[View Workflow Run and Download Artifacts](${context.payload.repository.html_url}/actions/runs/${context.runId})\n\n`;
+            issueBody += `Screenshots are stored as artifacts and will be available for 90 days.\n\n`;
+            issueBody += `---\n`;
+            issueBody += `*Generated automatically by GitHub Actions*`;
             
-            // Create the issue
+            // Create the issue with unique title including commit SHA
             const issue = await github.rest.issues.create({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              title: `📸 Website Screenshots - ${new Date().toISOString().split('T')[0]}`,
+              title: `📸 Website Screenshots - ${context.sha.substring(0, 7)} - ${new Date().toISOString().split('T')[0]}`,
               body: issueBody,
               labels: ['screenshots', 'automated']
             });
