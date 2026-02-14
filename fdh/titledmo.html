@@ -37,47 +37,53 @@
         <div id="welcome-msg">WELCOME TO THE<br>FRILLION DOLLAR HOMEPAGE</div>
     </div>
 
-    <script>
-        const buildSfx = new Audio('build.mp3');
-        const themeSfx = new Audio('theme.mp3');
+   <script>
+    const buildSfx = new Audio('build.mp3');
+    const themeSfx = new Audio('theme.mp3');
 
-        function startDemo() {
-            const btn = document.getElementById('start-btn');
-            const overlay = document.getElementById('tv-reveal');
-            const logo = document.getElementById('reveal-logo');
-            const msg = document.getElementById('welcome-msg');
+    function startDemo() {
+        const btn = document.getElementById('start-btn');
+        const overlay = document.getElementById('tv-reveal');
+        const logo = document.getElementById('reveal-logo');
+        const msg = document.getElementById('welcome-msg');
 
-            // --- PS4 AUDIO PRIME ---
-            // We play and immediately pause both to unlock the audio context
-            [buildSfx, themeSfx].forEach(s => {
-                s.play().then(() => { s.pause(); s.currentTime = 0; }).catch(() => {});
-            });
+        // 1. FORCED UNLOCK: Play both immediately
+        // We play themeSfx at 0 volume so the browser marks it as "active"
+        themeSfx.volume = 0;
+        themeSfx.play().then(() => {
+            themeSfx.pause();
+            themeSfx.currentTime = 0;
+            themeSfx.volume = 1; // Reset volume for later
+        });
 
+        buildSfx.play().then(() => {
+            // Success! Build is playing.
             btn.style.display = 'none';
             overlay.style.display = 'flex';
+        }).catch(e => {
+            alert("Device blocked audio. Try clicking again.");
+        });
+
+        // 2. THE TRANSITION
+        // Instead of waiting for 'onended', we trigger the reveal 
+        // a split second before the build ends (e.g., 6 seconds)
+        // ADJUST 6000 to the exact length of your build.mp3 in milliseconds
+        setTimeout(() => {
+            logo.style.opacity = '1';
+            msg.style.opacity = '1';
             
-            // 1. Start the Build-up
-            buildSfx.play();
+            themeSfx.play();
             
-            // 2. The Reveal (Triggered when build ends)
-            buildSfx.onended = () => {
-                // Visuals hit
-                logo.style.opacity = '1';
-                msg.style.opacity = '1';
-                
-                // Music drops
-                themeSfx.play();
-                
-                // 3. Final Fade Out
-                setTimeout(() => {
-                    overlay.style.opacity = '0';
-                    setTimeout(() => { 
-                        overlay.style.display = 'none'; 
-                        // Note: Grid would render here
-                    }, 3000);
-                }, 8000); // Logo stays for 8 seconds of theme.mp3
-            };
-        }
-    </script>
+            // 3. EXIT SEQUENCE
+            setTimeout(() => {
+                overlay.style.opacity = '0';
+                setTimeout(() => { 
+                    overlay.style.display = 'none'; 
+                }, 3000);
+            }, 8000); 
+        }, 6000); 
+    }
+</script>
+
 </body>
 </html>
