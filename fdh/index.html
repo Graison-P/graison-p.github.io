@@ -126,7 +126,12 @@
         let sfxPlayed = false;
         let hasSeenIntro = localStorage.getItem('seen_intro');
 
-        const loadSfx = (src) => { const a = new Audio(src); a.preload = "none"; return a; };
+        const loadSfx = (src) => { 
+            const a = new Audio(src); 
+            a.preload = "auto"; 
+            return a; 
+        };
+
         const erroSfx = loadSfx('erro.mp3'); 
         const introSfx = loadSfx('itshere.wav'); 
         const ringSfx = loadSfx('ring.wav');     
@@ -147,16 +152,17 @@
 
         const timerEl = document.getElementById('timer');
         timerEl.onclick = handleBypass;
-        timerEl.ontouchstart = handleBypass;
 
         function triggerTVWorld() {
             const overlay = document.getElementById('tv-reveal');
             overlay.style.display = 'flex';
-            buildSfx.play().catch(() => {});
+            buildSfx.play().catch(e => console.log("Audio play blocked"));
+            
             buildSfx.onended = () => {
                 document.getElementById('reveal-logo').style.opacity = '1';
                 document.getElementById('welcome-msg').style.opacity = '1';
-                themeSfx.play().catch(() => {});
+                themeSfx.play().catch(e => console.log("Audio play blocked"));
+                
                 setTimeout(() => {
                     overlay.style.opacity = '0';
                     setTimeout(() => { overlay.style.display = 'none'; }, 3000);
@@ -165,8 +171,8 @@
             };
         }
 
-        // LAUNCH DATE: Feb 15th, 8:00 AM
-        const launchDate = new Date("February 15, 2026 08:00:00").getTime();
+        // UPDATED LAUNCH: Feb 14th, 12:00 PM
+        const launchDate = new Date("February 14, 2026 12:00:00").getTime();
 
         function updateTimer() {
             const now = new Date().getTime();
@@ -191,4 +197,19 @@
             const h = Math.floor(diff / 3600000).toString().padStart(2, '0');
             const m = Math.floor((diff % 3600000) / 60000).toString().padStart(2, '0');
             const s = Math.floor((diff % 60000) / 1000).toString().padStart(2, '0');
-            document.getElementById('timer').innerHTML = h + ":" + m
+            document.getElementById('timer').innerHTML = h + ":" + m + ":" + s;
+        }
+
+        setInterval(updateTimer, 1000);
+        updateTimer();
+
+        function openDAFORM(x, y) {
+            if(!document.body.classList.contains('is-you')) return;
+            erroSfx.play().catch(() => {});
+            document.getElementById('form-coords').value = x + ", " + y;
+            document.getElementById('claim-modal').style.display = 'block';
+        }
+        function closeXP() { document.getElementById('claim-modal').style.display = 'none'; }
+    </script>
+</body>
+</html>
