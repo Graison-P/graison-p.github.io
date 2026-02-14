@@ -3,120 +3,72 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TV World Reveal Demo</title>
+    <title>TV World Reveal | FINAL</title>
     <style>
-        /* General Setup */
-        body { 
-            background: #666666; 
-            color: #0f0; 
-            font-family: sans-serif; 
-            text-align: center; 
-            margin: 0; 
-            overflow: hidden; 
-        }
-
-        /* THE REVEAL OVERLAY - Starts hidden, then goes black */
-        #tv-reveal {
-            position: fixed; 
-            top: 0; 
-            left: 0; 
-            width: 100vw; 
-            height: 100vh;
-            background: #000; 
-            z-index: 9999;
-            display: none; /* Triggered by JS */
-            flex-direction: column; 
-            justify-content: center; 
-            align-items: center;
-            opacity: 1; 
-            transition: opacity 3s ease; /* Fade out at the very end */
-        }
-
-        /* LOGO & MSG - No transition for that 'Hard Snap' look */
-        #reveal-logo { 
-            width: 80%; 
-            max-width: 500px; 
-            opacity: 0; 
-        }
+        body { background: #666666; color: #0f0; font-family: sans-serif; text-align: center; margin: 0; overflow: hidden; }
         
-        #welcome-msg {
-            color: white; 
-            font-size: 2.5rem; 
-            margin-top: 20px; 
-            opacity: 0;
-            font-family: "Bauhaus 93", "Arial Black", sans-serif;
-            text-shadow: 0 0 10px #0055e5;
+        #tv-reveal {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: #000; z-index: 9999;
+            display: none; flex-direction: column; justify-content: center; align-items: center;
+            opacity: 1; transition: opacity 3s ease;
         }
 
-        /* START BUTTON - Big and bold for the PS4 Cursor */
+        #reveal-logo, #welcome-msg { opacity: 0; }
+        #reveal-logo { width: 80%; max-width: 500px; }
+        #welcome-msg { color: white; font-size: 2.5rem; margin-top: 20px; font-family: "Bauhaus 93", sans-serif; }
+
         .demo-btn {
-            margin-top: 45vh; 
-            padding: 20px 40px; 
-            font-size: 1.5rem;
-            background: #0f0; 
-            color: #000; 
-            border: none; 
-            cursor: pointer;
-            font-weight: bold; 
-            border-radius: 12px;
-            box-shadow: 0 0 25px #0f0;
-            text-transform: uppercase;
+            margin-top: 45vh; padding: 20px 40px; font-size: 1.5rem;
+            background: #0f0; color: #000; border: none; cursor: pointer;
+            font-weight: bold; border-radius: 12px; box-shadow: 0 0 25px #0f0;
         }
-        .demo-btn:active { transform: scale(0.95); }
     </style>
 </head>
 <body>
 
-    <button id="start-btn" class="demo-btn" onclick="startDemo()">Start Reveal Demo</button>
+    <button id="start-btn" class="demo-btn" onclick="startDemo()">REVEAL THE FRILLION</button>
 
     <div id="tv-reveal">
         <img src="tfdhlgo.gif" id="reveal-logo" alt="Logo">
         <div id="welcome-msg">WELCOME TO THE<br>FRILLION DOLLAR HOMEPAGE</div>
     </div>
-<script>
-    const buildSfx = new Audio('build.mp3');
-    const themeSfx = new Audio('theme.mp3');
 
-    function startDemo() {
-        const btn = document.getElementById('start-btn');
-        const overlay = document.getElementById('tv-reveal');
-        const logo = document.getElementById('reveal-logo');
-        const msg = document.getElementById('welcome-msg');
+    <script>
+        const buildSfx = new Audio('build.mp3');
+        const themeSfx = new Audio('theme.mp3');
 
-        // 1. START BOTH IMMEDIATELY
-        buildSfx.play();
-        
-        // Start theme at 0 volume so the browser "allows" it to keep running
-        themeSfx.volume = 0;
-        themeSfx.play();
+        function startDemo() {
+            const btn = document.getElementById('start-btn');
+            const overlay = document.getElementById('tv-reveal');
+            const logo = document.getElementById('reveal-logo');
+            const msg = document.getElementById('welcome-msg');
 
-        btn.style.display = 'none';
-        overlay.style.display = 'flex';
-        
-        // 2. THE HARD SNAP
-        // We use the 'timeupdate' check because 'onended' is often unreliable on consoles
-        const checkEnd = setInterval(() => {
-            if (buildSfx.currentTime >= (buildSfx.duration - 0.1) || buildSfx.ended) {
-                clearInterval(checkEnd);
-                
-                // SNAP VISUALS
+            // --- THE DUAL-TRACK "WARM ENGINE" FIX ---
+            buildSfx.play();
+            themeSfx.volume = 0; // Play silently to keep the engine awake
+            themeSfx.play();
+
+            btn.style.display = 'none';
+            overlay.style.display = 'flex';
+            
+            // Hard cut logic
+            buildSfx.onended = () => {
+                // SNAP visuals on
                 logo.style.opacity = '1';
                 msg.style.opacity = '1';
                 
-                // UNMUTE THE THEME (It's already playing in the background!)
+                // Reset and blast the theme
                 themeSfx.currentTime = 0;
                 themeSfx.volume = 1;
                 
-                // 3. EXIT SEQUENCE
+                // Exit after 7 seconds
                 setTimeout(() => {
                     overlay.style.opacity = '0';
                     setTimeout(() => { overlay.style.display = 'none'; }, 3000);
-                }, 7000);
-            }
-        }, 50); // Checks every 50ms for the end of the build
-    }
-</script>
-
-                
+                }, 7000); 
+            };
+        }
+    </script>
 </body>
 </html>
