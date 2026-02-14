@@ -150,7 +150,7 @@
         }, {passive: false});
 
         // 3. THE FINAL COUNTDOWN (Feb 15, 2026)
-        const launchTime = new Date("Feb 15, 2026 00:00:00").getTime();
+        const launchTime = new Date("Feb 15, 2026 12:00:00").getTime();
 
         setInterval(() => {
             const now = new Date().getTime();
@@ -159,163 +159,12 @@
             if (diff <= 5000 && diff > 0 && !sfxPlayed) {
                 introSfx.play().catch(() => console.log("Sound blocked until touch"));
                 sfxPlayed = true;
-                label.innerHTML = "BRACE FOR IMPACT...";
+                label.innerHTML = "THE HELLISH ADS BEGIN";
             }
 
             if (diff <= 0) {
                 if(sfxPlayed) ringSfx.play();
                 document.body.classList.add('is-you'); // DROP THE SHUTTER
-            } else {
-                const h = Math.floor(diff / 3600000);
-                const m = Math.floor((diff % 3600000) / 60000);
-                const s = Math.floor((diff % 60000) / 1000);
-                timerDisplay.innerHTML = `${h}:${m}:${s}`;
-            }
-        }, 1000);
-    </script>
-</body>
-</html>
-            width: 1000px; height: 1000px;
-            background: var(--dim);
-            position: relative;
-            background-image: radial-gradient(circle, #111 1px, transparent 1px);
-            background-size: 10px 10px;
-            opacity: 0.3; pointer-events: none;
-            transition: opacity 1.5s ease;
-        }
-
-        /* When the creator (you) or the clock says it's time. */
-        body.is-you #main-grid { opacity: 1; pointer-events: auto; border: 2px solid var(--neon); }
-        
-        #reticle {
-            position: absolute; width: 10px; height: 10px;
-            border: 1px solid var(--warning);
-            display: none; pointer-events: none;
-            box-shadow: 0 0 5px var(--warning);
-        }
-
-        .human-note { font-size: 0.7rem; color: #444; margin-top: 10px; }
-    </style>
-</head>
-<body>
-
-    <div class="heartbeat-box" id="id-check">
-        <span id="label">WAITING FOR THE MOMENT...</span>
-        <span id="timer">--:--:--</span>
-    </div>
-
-    <div class="canvas-area">
-        <div id="main-grid">
-            <div id="reticle"></div>
-        </div>
-    </div>
-
-    <p class="human-note">Dev options- hold timer..</p>
-
-    <form name="pixel-claims" method="POST" data-netlify="true" style="display:none;">
-        <input type="hidden" name="form-name" value="pixel-claims" />
-        <input type="text" name="coords" id="form-coords">
-        <input type="text" name="img-url" id="form-img">
-    </form>
-
-    <script>
-        /* LISTEN UP:
-           This code is for the Feb 15 launch. 
-           If you're reading this and you aren't me, mind your DAMN business. 
-        */
-
-        const MY_NAME = "Graison-P"; // this is TOTALLY hardcoded ;).
-        const grid = document.getElementById('main-grid');
-        const reticle = document.getElementById('reticle');
-        const label = document.getElementById('label');
-        const timerDisplay = document.getElementById('timer');
-        
-        const introSfx = new Audio('itshere.wav');
-        const ringSfx = new Audio('ring.wav');
-
-        let holdTimer;
-        let sfxPlayed = false;
-
-        // --- AUTHENTICATION (The Handshake) ---
-        document.getElementById('id-check').addEventListener('touchstart', () => {
-            holdTimer = setTimeout(verifyIdentity, 2500); 
-        });
-        document.getElementById('id-check').addEventListener('touchend', () => clearTimeout(holdTimer));
-
-        async function verifyIdentity() {
-            const token = prompt("Identity check. Paste your GitHub token:");
-            if (!token) return;
-
-            label.innerHTML = "checking GitHub API...";
-            try {
-                const res = await fetch('https://api.github.com/user', {
-                    headers: { 'Authorization': `token ${token}` }
-                });
-                const user = await res.json();
-
-                if (user.login === MY_NAME) {
-                    document.body.classList.add('is-you');
-                    label.innerHTML = "WELCOME BACK, CREATOR";
-                    alert("Grid unlocked for testing.");
-                } else {
-                    alert("I'm gonna give ya till the count of to get your ugly, no good keister off my property before I pump ya guts fulla lead!");
-                    label.innerHTML = "no.";
-                }
-            } catch (e) {
-                alert("The API is slow or timed out. Try again.");
-            }
-        }
-
-        // --- THE GRID EXPERIENCE ---
-        grid.addEventListener('touchstart', (e) => {
-            if(!document.body.classList.contains('is-you')) return;
-            reticle.style.display = 'block';
-            handleTouch(e);
-        });
-
-        grid.addEventListener('touchmove', (e) => {
-            if(!document.body.classList.contains('is-you')) return;
-            handleTouch(e);
-        });
-
-        function handleTouch(e) {
-            const rect = grid.getBoundingClientRect();
-            const touch = e.touches[0];
-            const x = Math.floor((touch.clientX - rect.left) / 10) * 10;
-            const y = Math.floor((touch.clientY - rect.top) / 10) * 10;
-            
-            // Haptic feedback: Clicky-grid feeling.
-            if (reticle.style.left !== x + 'px' || reticle.style.top !== y + 'px') {
-                if (navigator.vibrate) navigator.vibrate(7); 
-            }
-
-            reticle.style.left = x + 'px';
-            reticle.style.top = y + 'px';
-        }
-
-        // --- THE CINEMATIC FINALE ---
-        const launchTime = new Date("Feb 15, 2026 00:00:00").getTime();
-
-        const clock = setInterval(() => {
-            const now = new Date().getTime();
-            const diff = launchTime - now;
-
-            if (diff <= 5000 && diff > 0 && !sfxPlayed) {
-                introSfx.play(); // "It's here..."
-                sfxPlayed = true;
-                label.innerHTML = "BRACE FOR IMPACT...";
-            }
-
-            if (diff <= 0) {
-                clearInterval(clock);
-                ringSfx.play(); // The clock rings.
-                
-                label.innerHTML = "THE GRID IS BORN";
-                timerDisplay.classList.add('fade-out'); // Goodbye, timer.
-                document.body.classList.add('is-you'); // Everyone is in.
-                
-                // Pure drama.
-                setTimeout(() => { timerDisplay.style.display = 'none'; }, 2000);
             } else {
                 const h = Math.floor(diff / 3600000);
                 const m = Math.floor((diff % 3600000) / 60000);
