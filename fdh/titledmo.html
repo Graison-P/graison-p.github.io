@@ -3,10 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TV World Reveal | FINAL</title>
+    <title>TV World Demo</title>
     <style>
         body { background: #666666; color: #0f0; font-family: sans-serif; text-align: center; margin: 0; overflow: hidden; }
         
+        /* THE REVEAL OVERLAY */
         #tv-reveal {
             position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
             background: #000; z-index: 9999;
@@ -14,20 +15,23 @@
             opacity: 1; transition: opacity 3s ease;
         }
 
-        #reveal-logo, #welcome-msg { opacity: 0; }
-        #reveal-logo { width: 80%; max-width: 500px; }
-        #welcome-msg { color: white; font-size: 2.5rem; margin-top: 20px; font-family: "Bauhaus 93", sans-serif; }
+        #reveal-logo { width: 80%; max-width: 500px; opacity: 0; transition: opacity 2.5s ease; }
+        
+        #welcome-msg {
+            color: white; font-size: 2rem; margin-top: 20px; opacity: 0;
+            transition: opacity 2s ease; font-family: "Bauhaus 93", Arial;
+        }
 
         .demo-btn {
-            margin-top: 45vh; padding: 20px 40px; font-size: 1.5rem;
+            margin-top: 45vh; padding: 20px; font-size: 1.5rem;
             background: #0f0; color: #000; border: none; cursor: pointer;
-            font-weight: bold; border-radius: 12px; box-shadow: 0 0 25px #0f0;
+            font-weight: bold; border-radius: 10px;
         }
     </style>
 </head>
 <body>
 
-    <button id="start-btn" class="demo-btn" onclick="startDemo()">REVEAL THE FRILLION</button>
+    <button class="demo-btn" onclick="startDemo()">CLICK TO START REVEAL DEMO</button>
 
     <div id="tv-reveal">
         <img src="tfdhlgo.gif" id="reveal-logo" alt="Logo">
@@ -35,38 +39,35 @@
     </div>
 
     <script>
+        // Mapping your files
         const buildSfx = new Audio('build.mp3');
         const themeSfx = new Audio('theme.mp3');
 
         function startDemo() {
-            const btn = document.getElementById('start-btn');
             const overlay = document.getElementById('tv-reveal');
             const logo = document.getElementById('reveal-logo');
             const msg = document.getElementById('welcome-msg');
-
-            // --- THE DUAL-TRACK "WARM ENGINE" FIX ---
-            buildSfx.play();
-            themeSfx.volume = 0; // Play silently to keep the engine awake
-            themeSfx.play();
-
-            btn.style.display = 'none';
+            
+            // 1. Show Blackout
             overlay.style.display = 'flex';
             
-            // Hard cut logic
+            // 2. Play Part 1 (Build)
+            buildSfx.play().catch(e => alert("Interact with page first to allow audio!"));
+            
+            // 3. When Part 1 ends, show Logo/Msg and Play Part 2 (Theme)
             buildSfx.onended = () => {
-                // SNAP visuals on
                 logo.style.opacity = '1';
                 msg.style.opacity = '1';
+                themeSfx.play();
                 
-                // Reset and blast the theme
-                themeSfx.currentTime = 0;
-                themeSfx.volume = 1;
-                
-                // Exit after 7 seconds
+                // 4. Final Fade Out to the "Site"
                 setTimeout(() => {
                     overlay.style.opacity = '0';
-                    setTimeout(() => { overlay.style.display = 'none'; }, 3000);
-                }, 7000); 
+                    setTimeout(() => { 
+                        overlay.style.display = 'none'; 
+                        alert("Demo Complete. Grid would be visible now.");
+                    }, 3000);
+                }, 7000); // Keeps the logo visible for 7 seconds during theme.mp3
             };
         }
     </script>
