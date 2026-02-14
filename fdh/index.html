@@ -181,22 +181,29 @@
     document.getElementById('timer').onclick = handleBypass;
 
     function triggerTVWorld() {
-        const overlay = document.getElementById('tv-reveal');
-        overlay.style.display = 'flex';
-        buildSfx.play().catch(e => console.log("Audio play blocked"));
+    const overlay = document.getElementById('tv-reveal');
+    overlay.style.display = 'flex';
+    
+    // Play the build-up music
+    buildSfx.play().then(() => {
+        console.log("Build music started");
+    }).catch(e => console.log("Build audio failed:", e));
+    
+    setTimeout(() => {
+        document.getElementById('reveal-logo').style.opacity = '1';
+        document.getElementById('welcome-msg').style.opacity = '1';
+        
+        // Play the main theme
+        themeSfx.play().catch(e => console.log("Theme audio failed"));
         
         setTimeout(() => {
-            document.getElementById('reveal-logo').style.opacity = '1';
-            document.getElementById('welcome-msg').style.opacity = '1';
-            themeSfx.play().catch(e => console.log("Audio play blocked"));
-            
-            setTimeout(() => {
-                overlay.style.opacity = '0';
-                setTimeout(() => { overlay.style.display = 'none'; }, 3000);
-                localStorage.setItem('seen_intro', 'true');
-            }, 8000); 
-        }, 2000);
-    }
+            overlay.style.opacity = '0';
+            setTimeout(() => { overlay.style.display = 'none'; }, 3000);
+            localStorage.setItem('seen_intro', 'true');
+        }, 8000); 
+    }, 2000);
+}
+
 
     const launchDate = new Date("February 14, 2026 12:00:00").getTime();
 
