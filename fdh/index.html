@@ -133,8 +133,9 @@
     <script>
     const BYPASS_KEY = "missouri";
     let clickCount = 0;
-    let sfxPlayed = false;
-    let hasSeenIntro = localStorage.getItem('seen_intro');
+    
+    // Check if they've been here before
+    let hasSeenIntro = localStorage.getItem('seen_intro') === 'true';
 
     const loadSfx = (src) => { 
         const a = new Audio(src); 
@@ -143,8 +144,6 @@
     };
 
     const erroSfx = loadSfx('erro.mp3'); 
-    const introSfx = loadSfx('itshere.wav'); 
-    const ringSfx = loadSfx('ring.wav');     
     const buildSfx = loadSfx('build.mp3');   
     const themeSfx = loadSfx('theme.mp3');   
 
@@ -152,85 +151,60 @@
     
     function generateMillionPixels() {
         const fragment = document.createDocumentFragment();
-        // 1,000,000 individual pixels
         for (let i = 0; i < 1000000; i++) {
             const pixel = document.createElement('div');
             pixel.className = 'pixel';
-            
-            // X and Y coordinates for a 1000x1000 grid
             const x = (i % 1000);
             const y = Math.floor(i / 1000);
-            
             pixel.onclick = () => openDAFORM(x, y);
             fragment.appendChild(pixel);
         }
         grid.appendChild(fragment);
     }
 
-    function handleBypass() {
-        clickCount++;
-        if (clickCount >= 5) {
-            const pass = prompt("DEV BYPASS:");
-            if (pass === BYPASS_KEY) {
-                document.body.classList.add('is-you');
-                document.getElementById('launch-overlay').style.display = 'none';
-            }
-            clickCount = 0;
-        }
-    }
-    document.getElementById('timer').onclick = handleBypass;
-
+    // This handles the first-time sequence
     function triggerTVWorld() {
-    const overlay = document.getElementById('tv-reveal');
-    overlay.style.display = 'flex';
-    
-    // Play the build-up music
-    buildSfx.play().then(() => {
-        console.log("Build music started");
-    }).catch(e => console.log("Build audio failed:", e));
-    
-    setTimeout(() => {
-        document.getElementById('reveal-logo').style.opacity = '1';
-        document.getElementById('welcome-msg').style.opacity = '1';
+        const overlay = document.getElementById('tv-reveal');
+        overlay.style.display = 'flex';
         
-        // Play the main theme
-        themeSfx.play().catch(e => console.log("Theme audio failed"));
+        // Step 1: Build music
+        buildSfx.play().catch(e => console.log("Interaction required for audio"));
         
         setTimeout(() => {
-            overlay.style.opacity = '0';
-            setTimeout(() => { overlay.style.display = 'none'; }, 3000);
-            localStorage.setItem('seen_intro', 'true');
-        }, 8000); 
-    }, 2000);
-}
+            // Step 2: Logo and Message fade in
+            document.getElementById('reveal-logo').style.opacity = '1';
+            document.getElementById('welcome-msg').style.opacity = '1';
+            
+            // Step 3: Delphian's TV World Theme starts
+            themeSfx.play().catch(e => console.log("Theme audio blocked"));
+            
+            setTimeout(() => {
+                // Step 4: Fade out and reveal the grid
+                overlay.style.opacity = '0';
+                setTimeout(() => { 
+                    overlay.style.display = 'none'; 
+                    document.body.classList.add('is-you'); // Enable interaction
+                }, 3000);
+                
+                // Set the "seen" flag so they don't see it again
+                localStorage.setItem('seen_intro', 'true');
+            }, 8000); 
+        }, 2000);
+    }
 
-
-    const launchDate = new Date("February 14, 2026 12:00:00").getTime();
-
-    function updateTimer() {
-        const now = new Date().getTime();
-        const diff = launchDate - now;
-
-        if (diff <= 0) {
-            document.getElementById('timer').innerHTML = "00:00:00";
-            if (!hasSeenIntro) {
-                ringSfx.play().catch(() => {});
-                triggerTVWorld();
-                document.body.classList.add('is-you');
-                hasSeenIntro = true;
-            }
-            return;
+    function initPage() {
+        const launchOverlay = document.getElementById('launch-overlay');
+        
+        if (!hasSeenIntro) {
+            // New visitor: Show the intro
+            triggerTVWorld();
+            if(launchOverlay) launchOverlay.style.display = 'none';
+        } else {
+            // Returning visitor: Go straight to the grid
+            document.body.classList.add('is-you');
+            if(launchOverlay) launchOverlay.style.display = 'none';
+            document.getElementById('tv-reveal').style.display = 'none';
         }
-
-        if (diff <= 5000 && !sfxPlayed) {
-            introSfx.play().catch(() => {});
-            sfxPlayed = true;
-        }
-
-        const h = Math.floor(diff / 3600000).toString().padStart(2, '0');
-        const m = Math.floor((diff % 3600000) / 60000).toString().padStart(2, '0');
-        const s = Math.floor((diff % 60000) / 1000).toString().padStart(2, '0');
-        document.getElementById('timer').innerHTML = h + ":" + m + ":" + s;
     }
 
     function openDAFORM(x, y) {
@@ -241,13 +215,13 @@
     }
     
     function closeXP() { document.getElementById('claim-modal').style.display = 'none'; }
-
     function openDARULES() { window.open('https://graison-p.is-a.dev/fdh/darules', '_blank'); }
 
     // Start everything
-    setInterval(updateTimer, 1000);
-    updateTimer();
     generateMillionPixels();
+    initPage();
 </script>
+
+
 </body>
 </html>    
