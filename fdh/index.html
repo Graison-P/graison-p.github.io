@@ -135,65 +135,107 @@
 
     <script>
         const MY_NAME = "Graison-P";
-        const popSfx = new Audio('pop.wav');
-        const erroSfx = new Audio('erro.mp3'); //
-        const introSfx = new Audio('itshere.wav'); //
-        const ringSfx = new Audio('ring.wav'); //
-        const buildSfx = new Audio('build.mp3');
-        const themeSfx = new Audio('theme.mp3');
 
-        let sfxPlayed = false;
-        let hasSeenIntro = localStorage.getItem('seen_intro');
+// AUDIO SETUP
+const popSfx = new Audio('pop.wav');
+const erroSfx = new Audio('erro.mp3');   //
+const introSfx = new Audio('itshere.wav'); //
+const ringSfx = new Audio('ring.wav');     //
+const buildSfx = new Audio('build.mp3');   //
+const themeSfx = new Audio('theme.mp3');   //
 
-        function triggerTVWorld() {
-            const overlay = document.getElementById('tv-reveal');
-            overlay.style.display = 'flex';
-            buildSfx.play();
-            
-            buildSfx.onended = () => {
-                document.getElementById('reveal-logo').style.opacity = '1';
-                document.getElementById('welcome-msg').style.opacity = '1';
-                themeSfx.play();
-                setTimeout(() => {
-                    overlay.style.opacity = '0';
-                    setTimeout(() => { overlay.style.display = 'none'; }, 3000);
-                    localStorage.setItem('seen_intro', 'true');
-                }, 10000);
-            };
+let sfxPlayed = false;
+let hasSeenIntro = localStorage.getItem('seen_intro');
+let clickCount = 0;
+
+// 1. SIMPLE OVERRIDE: Tap the timer 5 times to bypass
+document.getElementById('timer').addEventListener('click', () => {
+    clickCount++;
+    if (clickCount >= 5) {
+        const token = prompt("Identity Check. Enter Token:");
+        verifyBoss(token);
+        clickCount = 0;
+    }
+});
+
+async function verifyBoss(token) {
+    if (!token) return;
+    try {
+        const res = await fetch('https://api.github.com/user', { 
+            headers: { 'Authorization': `token ${token}` } 
+        });
+        const user = await res.json();
+        if (user.login === MY_NAME) {
+            document.body.classList.add('is-you');
+            alert("Welcome back, Graison-P.");
+        } else {
+            erroSfx.play(); //
+            alert("Ugly, no good keister detected.");
         }
+    } catch (e) {
+        alert("Connection too weak for GitHub check. Try again when signal is better.");
+    }
+}
 
-        const launchTime = new Date("Feb 15, 2026 00:00:00").getTime();
-        setInterval(() => {
-            const now = new Date().getTime();
-            const diff = launchTime - now;
+// 2. THE TV WORLD REVEAL
+function triggerTVWorld() {
+    const overlay = document.getElementById('tv-reveal');
+    overlay.style.display = 'flex';
+    
+    // Play Build (Part 1)
+    buildSfx.play();
+    
+    buildSfx.onended = () => {
+        // Fade in Logo
+        document.getElementById('reveal-logo').style.opacity = '1';
+        document.getElementById('welcome-msg').style.opacity = '1';
+        
+        // Play Theme (Part 2)
+        themeSfx.play();
+        
+        setTimeout(() => {
+            overlay.style.opacity = '0';
+            setTimeout(() => { overlay.style.display = 'none'; }, 3000);
+            localStorage.setItem('seen_intro', 'true');
+        }, 8000); 
+    };
+}
 
-            if (diff <= 5000 && diff > 0 && !sfxPlayed) {
-                introSfx.play(); //
-                sfxPlayed = true;
-            }
+// 3. COUNTDOWN LOGIC
+const launchTime = new Date("Feb 15, 2026 00:00:00").getTime();
+setInterval(() => {
+    const now = new Date().getTime();
+    const diff = launchTime - now;
 
-            if (diff <= 0) {
-                if (!hasSeenIntro) {
-                    ringSfx.play(); //
-                    triggerTVWorld();
-                    document.body.classList.add('is-you');
-                    hasSeenIntro = true;
-                }
-            } else {
-                const h = Math.floor(diff / 3600000);
-                const m = Math.floor((diff % 3600000) / 60000);
-                const s = Math.floor((diff % 60000) / 1000);
-                document.getElementById('timer').innerHTML = `${h}:${m}:${s}`;
-            }
-        }, 1000);
+    // 5 Second Warning
+    if (diff <= 5000 && diff > 0 && !sfxPlayed) {
+        introSfx.play();
+        sfxPlayed = true;
+    }
 
-        function openDAFORM(x, y) {
-            erroSfx.play().catch(() => {}); //
-            document.getElementById('form-coords').value = `${x}, ${y}`;
-            document.getElementById('claim-modal').style.display = 'block';
+    // Launch Moment
+    if (diff <= 0) {
+        if (!hasSeenIntro) {
+            ringSfx.play();
+            triggerTVWorld();
+            document.body.classList.add('is-you');
+            hasSeenIntro = true;
         }
+    } else {
+        const h = Math.floor(diff / 3600000);
+        const m = Math.floor((diff % 3600000) / 60000);
+        const s = Math.floor((diff % 60000) / 1000);
+        document.getElementById('timer').innerHTML = `${h}:${m}:${s}`;
+    }
+}, 1000);
 
-        function closeXP() { document.getElementById('claim-modal').style.display = 'none'; }
+// 4. DA FORM POPUP
+function openDAFORM(x, y) {
+    if(!document.body.classList.contains('is-you')) return;
+    
+    // Play the XP Error "Clunk"
+    erroSfx.play().catch(() => {});
+
     </script>
 </body>
 </html>
