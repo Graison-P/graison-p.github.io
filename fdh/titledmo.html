@@ -3,87 +3,126 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TV World Demo | PS4 Fix</title>
+    <title>TV World Reveal Demo</title>
     <style>
-        body { background: #666666; color: #0f0; font-family: sans-serif; text-align: center; margin: 0; overflow: hidden; }
-        
-        #tv-reveal {
-            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-            background: #000; z-index: 9999;
-            display: none; flex-direction: column; justify-content: center; align-items: center;
-            opacity: 1; transition: opacity 3s ease;
+        /* General Setup */
+        body { 
+            background: #666666; 
+            color: #0f0; 
+            font-family: sans-serif; 
+            text-align: center; 
+            margin: 0; 
+            overflow: hidden; 
         }
 
-        #reveal-logo { width: 80%; max-width: 500px; opacity: 0; transition: opacity 2.5s ease; }
+        /* THE REVEAL OVERLAY - Starts hidden, then goes black */
+        #tv-reveal {
+            position: fixed; 
+            top: 0; 
+            left: 0; 
+            width: 100vw; 
+            height: 100vh;
+            background: #000; 
+            z-index: 9999;
+            display: none; /* Triggered by JS */
+            flex-direction: column; 
+            justify-content: center; 
+            align-items: center;
+            opacity: 1; 
+            transition: opacity 3s ease; /* Fade out at the very end */
+        }
+
+        /* LOGO & MSG - No transition for that 'Hard Snap' look */
+        #reveal-logo { 
+            width: 80%; 
+            max-width: 500px; 
+            opacity: 0; 
+        }
         
         #welcome-msg {
-            color: white; font-size: 2rem; margin-top: 20px; opacity: 0;
-            transition: opacity 2s ease; font-family: "Bauhaus 93", Arial;
+            color: white; 
+            font-size: 2.5rem; 
+            margin-top: 20px; 
+            opacity: 0;
+            font-family: "Bauhaus 93", "Arial Black", sans-serif;
+            text-shadow: 0 0 10px #0055e5;
         }
 
+        /* START BUTTON - Big and bold for the PS4 Cursor */
         .demo-btn {
-            margin-top: 45vh; padding: 20px; font-size: 1.5rem;
-            background: #0f0; color: #000; border: none; cursor: pointer;
-            font-weight: bold; border-radius: 10px; box-shadow: 0 0 20px #0f0;
+            margin-top: 45vh; 
+            padding: 20px 40px; 
+            font-size: 1.5rem;
+            background: #0f0; 
+            color: #000; 
+            border: none; 
+            cursor: pointer;
+            font-weight: bold; 
+            border-radius: 12px;
+            box-shadow: 0 0 25px #0f0;
+            text-transform: uppercase;
         }
+        .demo-btn:active { transform: scale(0.95); }
     </style>
 </head>
 <body>
 
-    <button id="start-btn" class="demo-btn" onclick="startDemo()">INTERACT TO START REVEAL</button>
+    <button id="start-btn" class="demo-btn" onclick="startDemo()">Start Reveal Demo</button>
 
     <div id="tv-reveal">
         <img src="tfdhlgo.gif" id="reveal-logo" alt="Logo">
         <div id="welcome-msg">WELCOME TO THE<br>FRILLION DOLLAR HOMEPAGE</div>
     </div>
 
-   <script>
-    const buildSfx = new Audio('build.mp3');
-    const themeSfx = new Audio('theme.mp3');
+    <script>
+        // Audio Assets
+        const buildSfx = new Audio('build.mp3');
+        const themeSfx = new Audio('theme.mp3');
 
-    function startDemo() {
-        const btn = document.getElementById('start-btn');
-        const overlay = document.getElementById('tv-reveal');
-        const logo = document.getElementById('reveal-logo');
-        const msg = document.getElementById('welcome-msg');
+        function startDemo() {
+            const btn = document.getElementById('start-btn');
+            const overlay = document.getElementById('tv-reveal');
+            const logo = document.getElementById('reveal-logo');
+            const msg = document.getElementById('welcome-msg');
 
-        // 1. FORCED UNLOCK: Play both immediately
-        // We play themeSfx at 0 volume so the browser marks it as "active"
-        themeSfx.volume = 0;
-        themeSfx.play().then(() => {
-            themeSfx.pause();
-            themeSfx.currentTime = 0;
-            themeSfx.volume = 1; // Reset volume for later
-        });
+            // 1. PRIME THE AUDIO (Bypasses PS4/Safari/Chrome Autoplay Block)
+            [buildSfx, themeSfx].forEach(s => {
+                s.play().then(() => { 
+                    s.pause(); 
+                    s.currentTime = 0; 
+                }).catch(() => {
+                    console.log("Audio waiting for user gesture...");
+                });
+            });
 
-        buildSfx.play().then(() => {
-            // Success! Build is playing.
+            // 2. TRIGGER THE BLACKOUT
             btn.style.display = 'none';
             overlay.style.display = 'flex';
-        }).catch(e => {
-            alert("Device blocked audio. Try clicking again.");
-        });
-
-        // 2. THE TRANSITION
-        // Instead of waiting for 'onended', we trigger the reveal 
-        // a split second before the build ends (e.g., 6 seconds)
-        // ADJUST 6000 to the exact length of your build.mp3 in milliseconds
-        setTimeout(() => {
-            logo.style.opacity = '1';
-            msg.style.opacity = '1';
             
-            themeSfx.play();
+            // 3. PLAY BUILD-UP FULLY
+            buildSfx.play();
             
-            // 3. EXIT SEQUENCE
-            setTimeout(() => {
-                overlay.style.opacity = '0';
-                setTimeout(() => { 
-                    overlay.style.display = 'none'; 
-                }, 3000);
-            }, 8000); 
-        }, 6000); 
-    }
-</script>
-
+            // 4. THE HARD SNAP (When Build Ends)
+            buildSfx.onended = () => {
+                // Instantly show visuals (No Fade-In)
+                logo.style.opacity = '1';
+                msg.style.opacity = '1';
+                
+                // Instantly play the theme drop
+                themeSfx.play();
+                
+                // 5. KEEP VISUALS FOR 7 SECONDS
+                setTimeout(() => {
+                    // Start the 3-second fade out of the entire blackout overlay
+                    overlay.style.opacity = '0';
+                    
+                    setTimeout(() => { 
+                        overlay.style.display = 'none'; 
+                        console.log("Reveal complete. Grid active.");
+                    }, 3000); 
+                }, 7000); 
+            };
+        }
+    </script>
 </body>
 </html>
