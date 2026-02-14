@@ -20,46 +20,40 @@
             overflow-x: hidden;
         }
 
-        /* --- TV WORLD REVEAL OVERLAY --- */
+        /* --- TV WORLD REVEAL --- */
         #tv-reveal {
             position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
             background: #000; z-index: 9999;
             display: none; flex-direction: column; justify-content: center; align-items: center;
             opacity: 1; transition: opacity 3s ease;
         }
-
         #welcome-msg {
             color: white; font-family: "Bauhaus 93", sans-serif;
             font-size: 2.2rem; margin-top: 25px; opacity: 0;
             transition: opacity 2s ease; text-align: center;
         }
-
         #reveal-logo { width: 85%; max-width: 650px; opacity: 0; transition: opacity 2.5s ease; }
 
-        /* --- THE SHUTTER OVERLAY --- */
+        /* --- SHUTTER OVERLAY --- */
         #launch-overlay {
             position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
             background: rgba(0, 0, 0, 0.85); z-index: 5000;
             display: flex; flex-direction: column; justify-content: center; align-items: center;
             color: var(--neon); transition: opacity 2s ease, visibility 2s;
         }
-
         .timer-box {
             background: rgba(0, 40, 0, 0.7); border: 2px solid #005500;
             border-radius: 12px; padding: 30px; text-align: center;
         }
+        #timer { font-size: 5rem; font-family: "Bauhaus 93", sans-serif; line-height: 1; cursor: pointer; user-select: none; }
 
-        #timer { font-size: 5rem; font-family: "Bauhaus 93", sans-serif; line-height: 1; }
-
-        /* --- GRID CONTAINER --- */
+        /* --- GRID --- */
         .grid-container {
             width: 1000px; height: 1000px; background: #fff; border: 2px solid #000;
             position: relative; margin: 20px 0 50px 0;
             background-image: linear-gradient(#eee 1px, transparent 1px), linear-gradient(90deg, #eee 1px, transparent 1px);
             background-size: 10px 10px;
         }
-
-        #reticle { position: absolute; width: 10px; height: 10px; border: 1px solid red; display: none; pointer-events: none; }
 
         /* --- DA FORM (XP STYLE) --- */
         #claim-modal {
@@ -68,18 +62,15 @@
             width: 300px; background: var(--xp-beige); border: 3px solid var(--xp-blue);
             box-shadow: 6px 6px 0px rgba(0,0,0,0.4);
         }
-
         .xp-header {
             background: linear-gradient(180deg, #0058e6 0%, #3a93ff 10%, #0058e6 100%);
             color: white; padding: 4px 10px; font-weight: bold;
             display: flex; justify-content: space-between; align-items: center;
         }
-
-        .xp-body { padding: 15px; position: relative; }
+        .xp-body { padding: 15px; }
         .xp-label { font-size: 11px; font-weight: bold; display: block; margin-bottom: 2px; }
         .xp-input { width: 100%; margin-bottom: 12px; border: 2px inset #fff; box-sizing: border-box; padding: 3px; }
 
-        /* --- UTILS --- */
         body.is-you #launch-overlay { opacity: 0; visibility: hidden; }
         .sub-link { color: var(--neon); text-decoration: underline; cursor: pointer; font-weight: bold; margin-top: 10px; }
     </style>
@@ -92,20 +83,17 @@
     </div>
 
     <div id="launch-overlay">
-        <div class="timer-box" id="auth-zone">
-            <div style="color: #004400; font-size: 0.7rem; margin-bottom: 10px;">checking GitHub API...</div>
+        <div class="timer-box">
             <div id="timer">00:00:00</div>
         </div>
     </div>
 
-    <header><img src="tfdhlgo.gif" alt="Logo" id="main-logo" style="margin:20px 0; max-width:90vw;"></header>
+    <header><img src="tfdhlgo.gif" alt="Logo" style="margin:20px 0; max-width:90vw;"></header>
 
     <div class="sub-link" onclick="openDAFORM(0,0)">[ SUBMIT PIXELS VIA DA FORM ]</div>
 
     <div style="width: 100vw; overflow-x: auto; display: flex; justify-content: center;">
-        <div class="grid-container" id="main-grid">
-            <div id="reticle"></div>
-        </div>
+        <div class="grid-container" id="main-grid"></div>
     </div>
 
     <div id="claim-modal">
@@ -126,7 +114,6 @@
                 <input type="text" name="site" class="xp-input" required>
                 <input type="hidden" name="coords" id="form-coords">
                 <div style="text-align: right;">
-                    <span class="xp-label" style="display:inline-block; margin-right:5px;">SUBMIT DAT THING:</span>
                     <button type="submit" style="background:#eee; border:1px solid #777; padding:2px 10px; font-weight:bold;">OK</button>
                 </div>
             </form>
@@ -135,107 +122,73 @@
 
     <script>
         const MY_NAME = "Graison-P";
+        let clickCount = 0;
+        let sfxPlayed = false;
+        let hasSeenIntro = localStorage.getItem('seen_intro');
 
-// AUDIO SETUP
-const popSfx = new Audio('pop.wav');
-const erroSfx = new Audio('erro.mp3');   //
-const introSfx = new Audio('itshere.wav'); //
-const ringSfx = new Audio('ring.wav');     //
-const buildSfx = new Audio('build.mp3');   //
-const themeSfx = new Audio('theme.mp3');   //
+        const loadSfx = (src) => { const a = new Audio(src); a.preload = "none"; return a; };
+        const erroSfx = loadSfx('erro.mp3'); 
+        const introSfx = loadSfx('itshere.wav'); 
+        const ringSfx = loadSfx('ring.wav');     
+        const buildSfx = loadSfx('build.mp3');   
+        const themeSfx = loadSfx('theme.mp3');   
 
-let sfxPlayed = false;
-let hasSeenIntro = localStorage.getItem('seen_intro');
-let clickCount = 0;
-
-// 1. SIMPLE OVERRIDE: Tap the timer 5 times to bypass
-document.getElementById('timer').addEventListener('click', () => {
-    clickCount++;
-    if (clickCount >= 5) {
-        const token = prompt("Identity Check. Enter Token:");
-        verifyBoss(token);
-        clickCount = 0;
-    }
-});
-
-async function verifyBoss(token) {
-    if (!token) return;
-    try {
-        const res = await fetch('https://api.github.com/user', { 
-            headers: { 'Authorization': `token ${token}` } 
-        });
-        const user = await res.json();
-        if (user.login === MY_NAME) {
-            document.body.classList.add('is-you');
-            alert("Welcome back, Graison-P.");
-        } else {
-            erroSfx.play(); //
-            alert("Ugly, no good keister detected.");
+        function handleBypass() {
+            clickCount++;
+            if (clickCount >= 5) {
+                const pass = prompt("DEV BYPASS:");
+                if (pass === "missouri") {
+                    document.body.classList.add('is-you');
+                    document.getElementById('launch-overlay').style.display = 'none';
+                }
+                clickCount = 0;
+            }
         }
-    } catch (e) {
-        alert("Connection too weak for GitHub check. Try again when signal is better.");
-    }
-}
 
-// 2. THE TV WORLD REVEAL
-function triggerTVWorld() {
-    const overlay = document.getElementById('tv-reveal');
-    overlay.style.display = 'flex';
-    
-    // Play Build (Part 1)
-    buildSfx.play();
-    
-    buildSfx.onended = () => {
-        // Fade in Logo
-        document.getElementById('reveal-logo').style.opacity = '1';
-        document.getElementById('welcome-msg').style.opacity = '1';
-        
-        // Play Theme (Part 2)
-        themeSfx.play();
-        
-        setTimeout(() => {
-            overlay.style.opacity = '0';
-            setTimeout(() => { overlay.style.display = 'none'; }, 3000);
-            localStorage.setItem('seen_intro', 'true');
-        }, 8000); 
-    };
-}
+        const timerEl = document.getElementById('timer');
+        timerEl.onclick = handleBypass;
+        timerEl.ontouchstart = handleBypass;
 
-// 3. COUNTDOWN LOGIC
-const launchTime = new Date("Feb 15, 2026 00:00:00").getTime();
-setInterval(() => {
-    const now = new Date().getTime();
-    const diff = launchTime - now;
-
-    // 5 Second Warning
-    if (diff <= 5000 && diff > 0 && !sfxPlayed) {
-        introSfx.play();
-        sfxPlayed = true;
-    }
-
-    // Launch Moment
-    if (diff <= 0) {
-        if (!hasSeenIntro) {
-            ringSfx.play();
-            triggerTVWorld();
-            document.body.classList.add('is-you');
-            hasSeenIntro = true;
+        function triggerTVWorld() {
+            const overlay = document.getElementById('tv-reveal');
+            overlay.style.display = 'flex';
+            buildSfx.play().catch(() => {});
+            buildSfx.onended = () => {
+                document.getElementById('reveal-logo').style.opacity = '1';
+                document.getElementById('welcome-msg').style.opacity = '1';
+                themeSfx.play().catch(() => {});
+                setTimeout(() => {
+                    overlay.style.opacity = '0';
+                    setTimeout(() => { overlay.style.display = 'none'; }, 3000);
+                    localStorage.setItem('seen_intro', 'true');
+                }, 8000); 
+            };
         }
-    } else {
-        const h = Math.floor(diff / 3600000);
-        const m = Math.floor((diff % 3600000) / 60000);
-        const s = Math.floor((diff % 60000) / 1000);
-        document.getElementById('timer').innerHTML = `${h}:${m}:${s}`;
-    }
-}, 1000);
 
-// 4. DA FORM POPUP
-function openDAFORM(x, y) {
-    if(!document.body.classList.contains('is-you')) return;
-    
-    // Play the XP Error "Clunk"
-    erroSfx.play().catch(() => {});
+        // LAUNCH DATE: Feb 15th, 8:00 AM
+        const launchDate = new Date("February 15, 2026 08:00:00").getTime();
 
-    </script>
-</body>
-</html>
+        function updateTimer() {
+            const now = new Date().getTime();
+            const diff = launchDate - now;
+
+            if (diff <= 0) {
+                document.getElementById('timer').innerHTML = "00:00:00";
+                if (!hasSeenIntro) {
+                    ringSfx.play().catch(() => {});
+                    triggerTVWorld();
+                    document.body.classList.add('is-you');
+                    hasSeenIntro = true;
+                }
+                return;
+            }
+
+            if (diff <= 5000 && !sfxPlayed) {
+                introSfx.play().catch(() => {});
+                sfxPlayed = true;
+            }
+
+            const h = Math.floor(diff / 3600000).toString().padStart(2, '0');
+            const m = Math.floor((diff % 3600000) / 60000).toString().padStart(2, '0');
+            const s = Math.floor((diff % 60000) / 1000).toString().padStart(2, '0');
+            document.getElementById('timer').innerHTML = h + ":" + m
