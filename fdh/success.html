@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DA FORM - Code Generator</title>
+    <style>
+        body { background: #ece9d8; font-family: "Tahoma", sans-serif; display: flex; flex-direction: column; align-items: center; padding: 20px; }
+        .window { width: 95%; max-width: 500px; background: #ece9d8; border: 3px solid #0055e5; box-shadow: 4px 4px 0px rgba(0,0,0,0.3); }
+        .header { background: linear-gradient(180deg, #0058e6 0%, #3a93ff 10%, #0058e6 100%); color: white; padding: 5px 10px; font-weight: bold; font-size: 14px; }
+        .body { padding: 20px; }
+        .code-box { background: #000; color: #0f0; padding: 15px; border-radius: 3px; white-space: pre-wrap; font-family: 'Courier New', monospace; font-size: 13px; margin-bottom: 15px; border: 2px inset #fff; overflow-x: auto; }
+        button { background: #eee; border: 2px outset #fff; padding: 8px 20px; font-weight: bold; cursor: pointer; box-shadow: 1px 1px 0 black; }
+        button:active { border: 2px inset #fff; box-shadow: none; }
+    </style>
+</head>
+<body>
+    <div class="window">
+        <div class="header">SUBMISSION PROCESSOR</div>
+        <div class="body">
+            <p style="font-size: 12px; margin-top: 0;"><b>PIXEL DATA READY:</b> Copy this block and add it to the <code>pixelAds</code> list in your code.</p>
+            <div class="code-box" id="json-output">Generating...</div>
+            <button onclick="copyCode()">COPY JSON BLOCK</button>
+            <p style="font-size: 11px; color: #666;">(Adjust X and Y based on your email coordinates before saving!)</p>
+        </div>
+    </div>
+
+    <script>
+        // Note: In a full setup, you'd use URL params here. 
+        // For now, this generates the template for your manual update.
+        const newAd = {
+            name: "USER_NAME",
+            x: 0, 
+            y: 0,
+            w: 10,
+            h: 10,
+            url: "USER_SITE",
+            img: "USER_IMG_URL"
+        };
+
+        const output = JSON.stringify(newAd, null, 4) + ",";
+        document.getElementById('json-output').innerText = output;
+
+        function copyCode() {
+            const text = document.getElementById('json-output').innerText;
+            navigator.clipboard.writeText(text).then(() => {
+                alert("Copied to clipboard! Ready to paste into index.html.");
+            });
+        }
+    </script>
+</body>
+</html>
