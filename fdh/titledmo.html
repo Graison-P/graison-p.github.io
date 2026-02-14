@@ -73,56 +73,50 @@
         <img src="tfdhlgo.gif" id="reveal-logo" alt="Logo">
         <div id="welcome-msg">WELCOME TO THE<br>FRILLION DOLLAR HOMEPAGE</div>
     </div>
+<script>
+    const buildSfx = new Audio('build.mp3');
+    const themeSfx = new Audio('theme.mp3');
 
-    <script>
-        // Audio Assets
-        const buildSfx = new Audio('build.mp3');
-        const themeSfx = new Audio('theme.mp3');
+    function startDemo() {
+        const btn = document.getElementById('start-btn');
+        const overlay = document.getElementById('tv-reveal');
+        const logo = document.getElementById('reveal-logo');
+        const msg = document.getElementById('welcome-msg');
 
-        function startDemo() {
-            const btn = document.getElementById('start-btn');
-            const overlay = document.getElementById('tv-reveal');
-            const logo = document.getElementById('reveal-logo');
-            const msg = document.getElementById('welcome-msg');
+        // 1. START BOTH IMMEDIATELY
+        buildSfx.play();
+        
+        // Start theme at 0 volume so the browser "allows" it to keep running
+        themeSfx.volume = 0;
+        themeSfx.play();
 
-            // 1. PRIME THE AUDIO (Bypasses PS4/Safari/Chrome Autoplay Block)
-            [buildSfx, themeSfx].forEach(s => {
-                s.play().then(() => { 
-                    s.pause(); 
-                    s.currentTime = 0; 
-                }).catch(() => {
-                    console.log("Audio waiting for user gesture...");
-                });
-            });
-
-            // 2. TRIGGER THE BLACKOUT
-            btn.style.display = 'none';
-            overlay.style.display = 'flex';
-            
-            // 3. PLAY BUILD-UP FULLY
-            buildSfx.play();
-            
-            // 4. THE HARD SNAP (When Build Ends)
-            buildSfx.onended = () => {
-                // Instantly show visuals (No Fade-In)
+        btn.style.display = 'none';
+        overlay.style.display = 'flex';
+        
+        // 2. THE HARD SNAP
+        // We use the 'timeupdate' check because 'onended' is often unreliable on consoles
+        const checkEnd = setInterval(() => {
+            if (buildSfx.currentTime >= (buildSfx.duration - 0.1) || buildSfx.ended) {
+                clearInterval(checkEnd);
+                
+                // SNAP VISUALS
                 logo.style.opacity = '1';
                 msg.style.opacity = '1';
                 
-                // Instantly play the theme drop
-                themeSfx.play();
+                // UNMUTE THE THEME (It's already playing in the background!)
+                themeSfx.currentTime = 0;
+                themeSfx.volume = 1;
                 
-                // 5. KEEP VISUALS FOR 7 SECONDS
+                // 3. EXIT SEQUENCE
                 setTimeout(() => {
-                    // Start the 3-second fade out of the entire blackout overlay
                     overlay.style.opacity = '0';
-                    
-                    setTimeout(() => { 
-                        overlay.style.display = 'none'; 
-                        console.log("Reveal complete. Grid active.");
-                    }, 3000); 
-                }, 7000); 
-            };
-        }
-    </script>
+                    setTimeout(() => { overlay.style.display = 'none'; }, 3000);
+                }, 7000);
+            }
+        }, 50); // Checks every 50ms for the end of the build
+    }
+</script>
+
+                
 </body>
 </html>
